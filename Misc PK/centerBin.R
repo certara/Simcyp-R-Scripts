@@ -6,8 +6,8 @@
 #' times that weren't drawn at \emph{exactly} the nominal time but were close to
 #' it. Set the bins here to the nominal times, and the data will be filed into
 #' the slot that's closest to the nominal time at which that sample should have
-#' been drawn. For a similar option, see or see the base R function
-#' \code{\link[base]{cut}}.
+#' been drawn. For a similar option, see \code{\link{cutNumeric}} or see the
+#' base R function \code{\link[base]{cut}}.
 #'
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
@@ -26,7 +26,7 @@
 #'
 #' @return Returns a vector of numeric data
 #' @export
-#' 
+#'
 
 
 centerBin <- function(x, breaks){
@@ -43,7 +43,7 @@ centerBin <- function(x, breaks){
       CenterBins$Upper <- c(CenterBins$Lower[-1], NA)
       CenterBins$Upper[nrow(CenterBins)] <-
             max(c(max(x, na.rm = TRUE), max(breaks, na.rm = TRUE)))
-      CenterBins <- CenterBins[order(CenterBins$Lower), ]
+      CenterBins <- dplyr::arrange(CenterBins, Lower)
 
       Outbin <- x
       for(i in seq_along(x)){

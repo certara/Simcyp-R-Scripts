@@ -13,26 +13,19 @@ library("RSQLite")
 library("tidyverse") 
 
 #Initialise the system files path
-Simcyp::Initialise("C:\\Program Files\\Simcyp Simulator V22\\Screens\\SystemFiles",22,species = SpeciesID$Human, verbose = FALSE) 
+Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE) 
 
 
 # Set script to source file location 
 path_user <-Simcyp::ScriptLocation()
 setwd(path_user)
 
-#  Load other R script needed 
-source('GetForestData_DB.R') 
 
-
-# List workspaces/ studies you wish to simulate and compare
-# SimcypWksz<-unlist(list.files(path_user, pattern="\\.wksz$",full.names=FALSE , recursive=F ))   #, all.files=FALSE
-#Workspace<- SimcypWksz[1]
-
-#  Enter workspace/study name manually. 
-SimcypWksz<- c("CulmM2005_Caffeine_Fluvoxamine_DDI_V22.wksz",
-               "Christensen_caffeine_DDI_V22.wksz",
-               "Madsen_2001_FLUVOXDDI_75mg_V22.wksz",
-               "Madsen_2001_FLUVOXDDI_150mg_V22.wksz")  
+# Enter workspace/study name manually. 
+SimcypWksz<- c("CulmM2005_Caffeine_Fluvoxamine_DDI.wksz",
+               "Christensen_caffeine_DDI.wksz",
+               "Madsen_2001_FLUVOXDDI_75mg.wksz",
+               "Madsen_2001_FLUVOXDDI_150mg.wksz")  
 
 
 # Extract summary stats of Predicted AUC and Cmax ratio ---------------------------------------------
@@ -43,7 +36,7 @@ ForestData<- NULL  #
 for (Wks in 1:length(SimcypWksz)){ 
   
   Workspace<- SimcypWksz[Wks]
-  SetWorkspace(file.path(Workspace))
+  SetWorkspace(file.path("V23 workspace/",Workspace))
   
   
   ###### Run simulation and save to database
@@ -54,8 +47,7 @@ for (Wks in 1:length(SimcypWksz)){
   conn <- RSQLite::dbConnect(SQLite(),DBfilepath)
   
   # Get the AUC and Cmax ratio for the last dose and for the full population  !!
-  PredRatio<- GetForestData_DB( Alpha=0.05, Upper=95,Lower=5, conn, Last_Dose= TRUE, Trials=FALSE)
-  
+  PredRatio<- GetForestData_DB(Alpha = 0.05, Upper = 95, Lower = 5, conn, Last_Dose = TRUE, AUC_Type = "AUCt")
   
   ForestData<- data.frame(rbind(ForestData, PredRatio))
   
@@ -89,8 +81,10 @@ GOFDataCmax<- data.frame(Compound=Compound, Observed= observed.Cmaxratio ,
 GOFDataAUC<- data.frame(Compound=Compound, Observed= observed.AUCratio , 
                          Predicted= Predicted.AUCRatio$Mean ) 
 
-GOFData<-GOFDataAUC 
+GOFData<-GOFDataAUC # change PK here!
 # GOFData<-GOFDataCmax  
+
+
 # ------------------------------ Goodness of fit plot -----------------------
 
 # Guest criteria parameters

@@ -3,7 +3,6 @@
 #                                Simcyp Power Calculation                                  #
 # https://youtu.be/VX_M3tIyiYk                                                             #
 # https://youtu.be/Rsc5znwR5FA                                                             #
-# Poster : https://www.certara.com/app/uploads/2017/06/Cain_2017_PAGE_Lorezapam.pdf        #
 ############################################################################################
 
 
@@ -20,25 +19,25 @@ setwd(path_user)
 #2. Initialise Simcyp
 
 #Intialise the system files path
-Simcyp::Initialise("C:\\Program Files\\Simcyp Simulator V22\\Screens\\SystemFiles",22,species = SpeciesID$Human, verbose = FALSE)
+Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
 
 
-SetWorkspace("Lorezapam+Probenecid_v22.wksz") #Enter name of workspace
+SetWorkspace("Lorezapam+Probenecid_v23.wksz") #Enter name of workspace
 
-Simulate(database= "Lorezapam+Probenecid_v22.db") #This command is needed every time a new workspace is imported
+Simulate(database= "Lorezapam+Probenecid.db") #This command is needed every time a new workspace is imported
 
-conn<- RSQLite::dbConnect(SQLite(), "Lorezapam+Probenecid_v22.db")
+conn<- RSQLite::dbConnect(SQLite(), "Lorezapam+Probenecid.db")
 
 nPop<-GetParameter(SimulationParameterID$Pop,CategoryID$SimulationData, CompoundID$Substrate) # total population size 
 nPop1<-GetParameter(SimulationParameterID$Poppercent1,CategoryID$SimulationData, CompoundID$Substrate) # 1st pop size
 nPop2<-GetParameter(SimulationParameterID$Poppercent2,CategoryID$SimulationData, CompoundID$Substrate) # 2nd pop size
 nPop3<-GetParameter(SimulationParameterID$Poppercent3,CategoryID$SimulationData, CompoundID$Substrate) # 3rd pop size
 
-# Data Extraction from Lorezapam+Probenecid_v22.db file ------------------------------------
+# Data Extraction from Lorezapam+Probenecid file ------------------------------------
 # AO: This process takes a while. However, load the pre-saved data file and skip running line 44-62. 
 # Load data needed. 
-# save.image("MultiCpopulationAUCData.RData")
+# save.image("MultipopulationAUCData.RData")
 load("MultipopulationAUCData.RData")
 
 
@@ -60,6 +59,23 @@ AUCSubPop<-c(AUCSubPop, indSubj_AUC)
 AUCSubDDIPop<-c(AUCSubDDIPop, indSubj_AUC_DDI)
 
 ##  END Skip-------------------------------------------
+
+
+# Inhibitor AUC---Not needed --------
+# AUC_InbDeets<- Simcyp::GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Inhibitor1,individual = i,conn, allDoses = TRUE)
+# 
+# # Inhibtion =1 i.e inhibitor pk 
+# indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][1]  #OVERALL
+# 
+# # LastDose<-nrow(AUC_InbDeets)  #For the last dose
+# # indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][LastDose]
+# 
+# # FirstDose<-2  #For the First dose
+# # indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][FirstDose]
+# 
+# AUCInbPop<-c(AUCInbPop, indSubi_AUC)
+}
+
 
 
 #idAUC=AUC first dose 
@@ -87,7 +103,7 @@ lines(density(AUC.2),col=2, lwd=2)
 lines(density(AUC.3),col=3, lwd=2)
 legend("topright",c("AUC Sub HV","AUC Sub RI.l3","AUC Sub RI.36"), col=c(1,2,3), lwd=2, lty=1)#, "AUC Sub RI 36" ,3
 # legend("topright",c("AUC substrate","AUC substrate+inhibitor"), col=c(1,2), lwd=2, lty=1)
-abline(v=0.285444, lty=2)  # Plot C.value
+abline(v=0.285444, lty=2)
 
 #2.Calculate mean and variance of the AUC in both populations. 
 #population 1 has a mean m.pop1 and variance v.pop1
@@ -110,12 +126,14 @@ sd.pop3<-sqrt(v.pop3)
 #Here it assumes that sampling equal numbers from both populations
 
 #Define vector of sample sizes
+#sample<-c(2,3,4,5,10,20,50)
 sample.1<-c(10,20,30,40,50)  # c(2,3,4,5,6) #sample size in population 1
-sample.2<- 2*sample.1# sample size in population 2
+#sample.2<-c(2,4,6,8,10)# sample size in population 2
+sample.2<-sample.1
 
 
 # IF m.pop2>m.pop1, USE METHOD 1
-# IF m.pop2<m.pop1, USE METHOD 2 <<< this is the Case for this script.
+# IF m.pop2<m.pop1, USE METHOD 2
 
 
 
@@ -140,11 +158,9 @@ for (i in 1:length(sample.1)){
   
   
 }
-View(c.value)
 # AO:
-#Here we see as the number of samples increases, the closer Z0 aka C.value is to the mean of Pop1 (true mean)
-#Meaning the SD/ deviation of the AUC data is reducing. Meaning more certainty if the sample size increases.
-#Meaning the sample mean is less affected by extreme values. 
+#Here we see the greater the number of samples, the closer Z0=C.value is to the mean mean of 0.21...
+#Meaning the SD/ deviation of the AUC data is reducing. MEaning more certainty if the sample size increases. 
 
 
 #5.Calculating power for each sample size
@@ -155,14 +171,13 @@ for (i in 1:length(sample.2)){
   power.PK[1,i]<-1-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
   ## AO:NOTES
   #----------
-  # here we are calculating pnorm. meaning we have the Z0 aka c.value now, 
-  # So we are calculating the probability i.e area under the left hand side of the density curve then take away from 1.
-  # pnorm= probability of Z<=z0. It only computes area BELOW
-  # 1-pmorn gives you the are above which is power calc 
+  # here we are calculating pnorm. meaning we have the Z0=c.value now, then we work out what the probability is. then take away from 1.
+  #pnorm= probability of Z<=z0. It only computes area BELOW
+  # 1-pmorn gives you the are above which is power calc aka. significance level/ alpha
 }
 
 power<-power.PK*100
-power
+
 
 # -----------------------------------------------------------------------------------------------------------------
 
@@ -186,14 +201,12 @@ for (i in 1:length(sample.2)){
   power.PK[1,i]<-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
   ## AO:NOTES
   #----------
-  # here we are calculating pnorm. meaning we have the Z0 aka c.value now, 
-  # So we are calculating the probability i.e area under the left hand side of the density curve then take away from 1.
-  # pnorm= probability of Z<=z0. It only computes area BELOW
-  # 1-pmorn gives you the are above which is power calc 
+  # here we are calculating pnorm. meaning we have the Z0=c.value now, then we work out what the probability is. then take away from 1.
+  #pnorm= probability of Z<=z0. It only computes area BELOW
+  # 1-pmorn gives you the are above which is power calc aka. significance level/ alpha
 }
 
 power<-power.PK*100
-power
 
 #Graph of power by sample size
 plot(sample.1,power, type="l", col="red",lwd=2, xlab="Sample size", ylab="Power(%)")

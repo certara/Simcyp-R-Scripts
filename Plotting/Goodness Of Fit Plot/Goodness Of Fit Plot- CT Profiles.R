@@ -2,7 +2,7 @@
 #                                                                                               #
 #                                Goodness of Fit plot                                           #
 # Using data from Fluvoxamine V22 compound summary file (Fig 1 and 2)                           #
-# 3 studies were used in this example  deBree1983,  Devries1993 and Fig2_Fleishaker1994_MD_V22  #
+# 3 studies were used in this example  deBree1983,  Devries1993 and Fig2_Fleishaker1994_MD  #
 #                                                                                               #
 #################################################################################################
 
@@ -32,9 +32,8 @@ setwd(path_user)
 load("GOFObsandPredData.RData")
 
 #. Initialise Simcyp Engine
-Simcyp::Initialise("C:\\Program Files\\Simcyp Simulator V22\\Screens\\SystemFiles",22,species = SpeciesID$Human, verbose = FALSE)
+Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
-#load("GOFObsandPredData.RData")
 
 
 # ------------------------- Create Observed Dataframe ----------------------------
@@ -72,9 +71,9 @@ ObsCsys_ngmLFleishaker1994<- c(2.463,9.852,19.704,22.168,18.227,15.271,13.301,11
 # ----------------------- Obtain Predicted Data and Save into a data frame -----------------------
 # Data 1: deBree1983
 # Set workspace and run simulation
-SetWorkspace("Fig1A_Debree1983_100mg_single_oral_V22.wksz") #Enter name of workspace
-Simulate(database= "Fig1A_Debree1983_100mg_single_oral_V22.db") #This command is needed every time a new workspace is imported
-conn<- RSQLite::dbConnect(SQLite(), "Fig1A_Debree1983_100mg_single_oral_V22.db")
+SetWorkspace("V23 workspace/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
+Simulate(database= "Fig1A_Debree1983_100mg_single_oral.db") #This command is needed every time a new workspace is imported
+conn<- RSQLite::dbConnect(SQLite(), "Fig1A_Debree1983_100mg_single_oral.db")
 # Extract CT profile
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDeBree1983, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeDeBree1983<-CsysDB$x
@@ -86,9 +85,9 @@ RSQLite::dbDisconnect(conn)
 
 # Data 2: Devries1993
 # Set workspace and run simulation
-SetWorkspace("Fig1B_Devries1993_100mg_single_oral_V22.wksz") 
-Simulate(database= "Fig1B_Devries1993_100mg_single_oral_V22.db") 
-conn<- RSQLite::dbConnect(SQLite(), "Fig1B_Devries1993_100mg_single_oral_V22.db")
+SetWorkspace("V23 workspace/Fig1B_Devries1993_100mg_single_oral.wksz") 
+Simulate(database= "Fig1B_Devries1993_100mg_single_oral.db") 
+conn<- RSQLite::dbConnect(SQLite(), "Fig1B_Devries1993_100mg_single_oral.db")
 # Extract CT profile
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDevries1993, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeDevries1993<-CsysDB$x
@@ -101,9 +100,9 @@ RSQLite::dbDisconnect(conn)
 
 # Data 3: Fleishaker1994
 # Set workspace and run simulation
-SetWorkspace("Fig2_Fleishaker1994_MD_V22.wksz") 
-Simulate(database= "Fig2_Fleishaker1994_MD_V22.db") 
-conn<- RSQLite::dbConnect(SQLite(), "Fig2_Fleishaker1994_MD_V22.db")
+SetWorkspace("V23 workspace/Fig2_Fleishaker1994_MD.wksz") 
+Simulate(database= "Fig2_Fleishaker1994_MD.db") 
+conn<- RSQLite::dbConnect(SQLite(), "Fig2_Fleishaker1994_MD.db")
 # Extract CT profile
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeFleishaker1994, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeFleishaker1994<-CsysDB$x

@@ -10,7 +10,7 @@ library(caTools)
 
 dir <- getwd()
 setwd(dir)
-Simcyp::Initialise("C:\\Program Files\\Simcyp Simulator V22\\Screens\\SystemFiles",22,species = SpeciesID$Dog, verbose = FALSE) 
+Simcyp::Initialise("C:\\Program Files\\Simcyp Simulator V23\\Screens\\SystemFiles",23,species = SpeciesID$Dog, verbose = FALSE) 
 Simcyp::SetWorkspace("Dogx10IV.wksz")
 Simulate(database = "local_copy.db")
 conn <- RSQLite::dbConnect(RSQLite::SQLite(), "local_copy.db")
