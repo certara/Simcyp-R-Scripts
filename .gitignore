@@ -2,6 +2,7 @@
 .Rproj.user
 .Rhistory
 .Ruserdata
+.RData
 
 # Ignoring videos
 *.wmv
