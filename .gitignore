@@ -1,4 +1,23 @@
+# Ignoring certain R files
 .Rproj.user
 .Rhistory
-.RData
 .Ruserdata
+
+# Ignoring videos
+*.wmv
+*.mp4
+*.webm
+
+# Ignoring graphical files and slide decks and notes unless people tell me they want that
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.tif
+*.tiff
+*.pptx
+*.docx
+
+# Ignoring database files b/c they're so large and you can generate them from the workspace anyway
+*.db
+
