@@ -1,5 +1,5 @@
 # Forest plot example
-The workspaces used to run this example script verifies Simcyp<sup>TM</sup> V23 Atazanavir compound file. Where the summary statistics of the predicted AUC and Cmax ratio are calculated for each DDI study using SimcypTM  R Package and presented as a forest plot.
+The workspaces used to run this example script verifies Simcyp<sup>TM</sup> V23 Atazanavir compound file. Where the summary statistics of the predicted AUC and Cmax ratio are calculated for each DDI study using Simcyp<sup>TM</sup> R Package and presented as a forest plot.
  
 ## This script shows
 * How to run the Simcyp<sup>TM</sup> Simulator from R i.e. Setting up a Simcyp<sup>TM</sup> R script
