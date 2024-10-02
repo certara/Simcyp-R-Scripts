@@ -2,20 +2,13 @@
 .Rproj.user
 .Rhistory
 .Ruserdata
-*.RData
 
 # Ignoring videos
 *.wmv
 *.mp4
 *.webm
 
-# Ignoring graphical files and slide decks and notes unless people tell me they want that
-*.png
-*.jpg
-*.jpeg
-*.svg
-*.tif
-*.tiff
+# Ignoring slide decks and notes unless people tell us they want that
 *.pptx
 *.docx
 
