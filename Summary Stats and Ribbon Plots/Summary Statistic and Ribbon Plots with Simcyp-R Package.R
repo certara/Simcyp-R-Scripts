@@ -2,7 +2,7 @@
 # Clear Global Environment ----
 rm(list=ls()) 
 
-# 1. Load Packages ----
+# 1. Load Packages -----
 # Required packages for Simcyp-R 
 library("Simcyp")
 library("RSQLite")
