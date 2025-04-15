@@ -14,7 +14,7 @@ library(PKNCA)
 library(tictoc)
 
 # Note: You will need to have the Simcyp Simulator open to simulate. I'm using
-# version 23 here.
+# version 24 here.
 
 # Setting up working directory
 path_user <- Simcyp::ScriptLocation()
@@ -27,8 +27,8 @@ setwd(path_user)
 # Initialize the Simulator. Even if you're not simulating, you'll need to do
 # this to use the Simcyp package. We're based in the UK, so, USA folks, please
 # note the spelling here! :)
-Simcyp::Initialise(filePath = "C:/Program Files/Simcyp Simulator V23/Screens/SystemFiles",
-                   requestedVersion = 23, 
+Simcyp::Initialise(filePath = "C:/Program Files/Simcyp Simulator V24/Screens/SystemFiles",
+                   requestedVersion = 24, 
                    species = SpeciesID$Human) 
 
 # If you've already run this script in the past -- maybe you're only interested

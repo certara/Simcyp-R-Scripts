@@ -9,12 +9,6 @@
 # Clear Global Environment 
 rm(list=ls()) 
 
-# To skip running the simulation and producing the database files yourself,
-# Load "GOFObsandPredData.RData" below. To do this, run line 15-32: 
-# Which loads the packages and set the script location. 
-# Then skip to and run from Goodness of fit plot section (line 136)
-# ------------------------------------------------------------------
-
 
 # load packages
 library("Simcyp")
@@ -28,8 +22,22 @@ library("tidyverse")
 path_user <- dirname(rstudioapi::getActiveDocumentContext()$path)
 setwd(path_user)
 
-# Load pre-saved data
-load("GOFObsandPredData.RData")
+
+# Here we check if "GOFObsandPredData.RData" file exists in your working folder the load it.
+# Otherwise, we create it.  
+# -------------------------------------------------------------------------------------------
+if(file.exists("GOFObsandPredData.RData")){
+  
+  # Load pre-saved data
+  load("GOFObsandPredData.RData")
+  
+} else {
+  
+  # We will:
+  # .load the Human Simcyp simulator
+  # .Create the observed CT dataframe of 3 studies
+  # .Run the simulation for each study and Obtain the Predicted CT Data and store into a dataframe
+  # .Combine both observed and predicted data into a new dataframe for GOF plotting
 
 #. Initialise Simcyp Engine
 Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
@@ -71,10 +79,13 @@ ObsCsys_ngmLFleishaker1994<- c(2.463,9.852,19.704,22.168,18.227,15.271,13.301,11
 # ----------------------- Obtain Predicted Data and Save into a data frame -----------------------
 # Data 1: deBree1983
 # Set workspace and run simulation
-SetWorkspace("V23 workspace/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
+SetWorkspace("V24 Workspaces/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
 Simulate(database= "Fig1A_Debree1983_100mg_single_oral.db") #This command is needed every time a new workspace is imported
 conn<- RSQLite::dbConnect(SQLite(), "Fig1A_Debree1983_100mg_single_oral.db")
+
 # Extract CT profile
+Profile_Unit<-GetProfileUnit(ProfileID$Csys, conn)
+Profile_Unit
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDeBree1983, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeDeBree1983<-CsysDB$x
 PredCsys_mgLDeBree1983<-CsysDB$y
@@ -85,9 +96,10 @@ RSQLite::dbDisconnect(conn)
 
 # Data 2: Devries1993
 # Set workspace and run simulation
-SetWorkspace("V23 workspace/Fig1B_Devries1993_100mg_single_oral.wksz") 
+SetWorkspace("V24 Workspaces/Fig1B_Devries1993_100mg_single_oral.wksz") 
 Simulate(database= "Fig1B_Devries1993_100mg_single_oral.db") 
 conn<- RSQLite::dbConnect(SQLite(), "Fig1B_Devries1993_100mg_single_oral.db")
+
 # Extract CT profile
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDevries1993, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeDevries1993<-CsysDB$x
@@ -100,9 +112,10 @@ RSQLite::dbDisconnect(conn)
 
 # Data 3: Fleishaker1994
 # Set workspace and run simulation
-SetWorkspace("V23 workspace/Fig2_Fleishaker1994_MD.wksz") 
+SetWorkspace("V24 Workspaces/Fig2_Fleishaker1994_MD.wksz") 
 Simulate(database= "Fig2_Fleishaker1994_MD.db") 
 conn<- RSQLite::dbConnect(SQLite(), "Fig2_Fleishaker1994_MD.db")
+
 # Extract CT profile
 CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeFleishaker1994, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
 PredTimeFleishaker1994<-CsysDB$x
@@ -128,8 +141,8 @@ DataFleishaker1994<- data.frame(Study=factor(rep("Fleishaker1994", length(ObsTim
 
 GOFData<- rbind(DataDeBree1983, DataDevries1993, DataFleishaker1994)
 
-# save.image("GOFObsandPredData.RData")
-
+save.image("GOFObsandPredData.RData")
+}
 
 
 # ------------------------------ Goodness of fit plot -----------------------

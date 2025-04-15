@@ -12,13 +12,32 @@ library("Simcyp")
 library("RSQLite")
 library("tidyverse") 
 
-#Initialise the system files path
-Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE) 
 
 
 # Set script to source file location 
 path_user <-Simcyp::ScriptLocation()
 setwd(path_user)
+
+
+# Here we check if "GOFObsandPredPKData.RData" file exists in your working folder the load it.
+# Otherwise, we create it.  
+# -------------------------------------------------------------------------------------------
+if(file.exists("GOFObsandPredPKData.RData")){
+  
+  # Load pre-saved data
+  load("GOFObsandPredPKData.RData")
+  message( "Loaded GOFObsandPredPKData.RData file" )
+} else {
+  
+  # We will:
+  # .load the Human Simcyp simulator
+  # .In a loop, run a simulation and Extract the summary stats of the Predicted 
+  #  AUC and Cmax ratios of 4 studies. Store the results in an object called ForestData.
+  # .Create the observed data and save into a dataframe for comparison .
+  
+
+#Initialise the system files path
+Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE) 
 
 
 # Enter workspace/study name manually. 
@@ -36,7 +55,7 @@ ForestData<- NULL  #
 for (Wks in 1:length(SimcypWksz)){ 
   
   Workspace<- SimcypWksz[Wks]
-  SetWorkspace(file.path("V23 workspace/",Workspace))
+  SetWorkspace(file.path("V24 Workspaces/",Workspace))
   
   
   ###### Run simulation and save to database
@@ -46,7 +65,7 @@ for (Wks in 1:length(SimcypWksz)){
   Simulate(database = DBfilepath)
   conn <- RSQLite::dbConnect(SQLite(),DBfilepath)
   
-  # Get the AUC and Cmax ratio for the last dose and for the full population  !!
+  # Get the AUC and Cmax ratio for the last dose and for the full population
   PredRatio<- GetForestData_DB(Alpha = 0.05, Upper = 95, Lower = 5, conn, Last_Dose = TRUE, AUC_Type = "AUCt")
   
   ForestData<- data.frame(rbind(ForestData, PredRatio))
@@ -55,6 +74,8 @@ for (Wks in 1:length(SimcypWksz)){
   message( paste( SimcypWksz[Wks], "is now complete :) "  ) )
   
 }
+
+
 
 # Predicted PK  Ratio
 PKData <- split( ForestData , f = ForestData$PKparameter)
@@ -67,7 +88,7 @@ Predicted.AUCRatio <- data.frame(PKData[["AUCt_ratio"]])
 observed.Cmaxratio <- c(1.4,2.90,NA,NA)
 observed.AUCratio <- c(13.71,6.14,1.25,1.93)
 
-# Compound Name; order matters!
+# Compound Name; the order matters!
 # make sure they are grouped by compound names. 
 Compound <- c("Caffeine",      
               "Caffeine",
@@ -81,9 +102,8 @@ GOFDataCmax<- data.frame(Compound=Compound, Observed= observed.Cmaxratio ,
 GOFDataAUC<- data.frame(Compound=Compound, Observed= observed.AUCratio , 
                          Predicted= Predicted.AUCRatio$Mean ) 
 
-GOFData<-GOFDataAUC # change PK here!
-# GOFData<-GOFDataCmax  
-
+save(GOFDataCmax, GOFDataAUC, file= "GOFObsandPredPKData.RData")
+}
 
 # ------------------------------ Goodness of fit plot -----------------------
 
@@ -119,6 +139,7 @@ GuestData<- function(breaks){
 
 breaks=c(0.1,1,10,100, 1000)
 
+GOFData<- GOFDataAUC   # To plot Cmax data , UPDATE this entry to: GOFData<- GOFDataCmax
 xLabelName<- "Observed AUC Ratio"       # UPDATE!
 yLabelName<- "Predicted AUC Ratio"       # UPDATE!
 GraphTitle<- "Goodness of fit plot- Fluvoxamine"
