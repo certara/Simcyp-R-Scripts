@@ -42,3 +42,7 @@ Other learning videos can be found on YouTube:
 * [Simcyp R package overview v21](https://youtu.be/htlC2EvDWTk?si=NEKdw5i6u3oCI43S)
 * [Summary statistics and ribbon plots](https://youtu.be/qn5YVLGPis4?si=7N85NKH8S229tITR)
 * [Forest plots](https://youtu.be/bi6M6IpCYdc?si=gzMcdbEolDqc7hpl)
+
+## Publications:  
+* [Using the Simcyp R Package for PBPK Simulation Workflows With the Simcyp Simulator](https://ascpt.onlinelibrary.wiley.com/doi/10.1002/psp4.70022)
+* [SimRFlow: An R-based workflow for automated high-throughput PBPK simulation with the Simcyp® simulator](https://www.frontiersin.org/journals/pharmacology/articles/10.3389/fphar.2022.929200/full)
