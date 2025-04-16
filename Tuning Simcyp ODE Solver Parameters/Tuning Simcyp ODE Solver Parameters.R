@@ -1,7 +1,7 @@
 rm( list = ls() )
 
 library("Simcyp")
-library("RSQLite")
+
 
 #######  PREPARATIONS - combinations of solver-parameters to examine
 
@@ -24,24 +24,25 @@ res.df$atol   <- atol
 
 Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
-SetWorkspace("V23_B305_minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
+path_user <- Simcyp::ScriptLocation()
+setwd(path_user)
+
+SetWorkspace("V24_B305_minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
 
 db_file  <- array( dim = Tot_iter )
 
 for( iter in 1 : Tot_iter ){
    db_file[iter] <- paste0("sim_",sprintf("%004d",iter),".db")
-   
-   # Simcyp::SetSolver( solv[iter],
-   #                    rtol = rtol[iter], atol = atol[iter], maxsteps = 1e+07 )
-   # 
-   # Simulate( database = db_file[iter] )
+
+   Simcyp::SetSolver( solv[iter],
+                      rtol = rtol[iter], atol = atol[iter], maxsteps = 1e+07 )
+
+   Simulate( database = db_file[iter] )
 }
 
-Simcyp::Uninitialise()
 
 #######  ANALYSIS of databases - speed and accuracy (non-negativity)
-
-Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
+library("RSQLite")
 
 for( iter in 1 : Tot_iter ){
    conn <- RSQLite::dbConnect( SQLite(), db_file[iter] )
@@ -64,6 +65,9 @@ for( iter in 1 : Tot_iter ){
    
    RSQLite::dbDisconnect( conn )
 }
+
+res.df
+
 
 Simcyp::Uninitialise()
 

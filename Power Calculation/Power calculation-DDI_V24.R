@@ -1,8 +1,6 @@
 ############################################################################################
-# AO:06/06/2023                                                                            #
+# AO:16/04/2024                                                                            #
 #                                Simcyp Power Calculation                                  #
-# https://youtu.be/VX_M3tIyiYk                                                             #
-# https://youtu.be/Rsc5znwR5FA                                                             #
 ############################################################################################
 
 
@@ -23,9 +21,9 @@ Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
 
 
-SetWorkspace("Lorezapam+Probenecid_v23.wksz") #Enter name of workspace
+SetWorkspace("Lorezapam+Probenecid_v24.wksz") #Enter name of workspace
 
-Simulate(database= "Lorezapam+Probenecid.db") #This command is needed every time a new workspace is imported
+Simulate(database= "Lorezapam+Probenecid.db") 
 
 conn<- RSQLite::dbConnect(SQLite(), "Lorezapam+Probenecid.db")
 
@@ -34,49 +32,27 @@ nPop1<-GetParameter(SimulationParameterID$Poppercent1,CategoryID$SimulationData,
 nPop2<-GetParameter(SimulationParameterID$Poppercent2,CategoryID$SimulationData, CompoundID$Substrate) # 2nd pop size
 nPop3<-GetParameter(SimulationParameterID$Poppercent3,CategoryID$SimulationData, CompoundID$Substrate) # 3rd pop size
 
-# Data Extraction from Lorezapam+Probenecid file ------------------------------------
-# AO: This process takes a while. However, load the pre-saved data file and skip running line 44-62. 
-# Load data needed. 
-# save.image("MultipopulationAUCData.RData")
-load("MultipopulationAUCData.RData")
+# AUC Extraction from simulated DDI study (Lorezapam+Probenecid) ------------------------------------
+# AO: This process takes a while. Therefore, load the pre-saved data file.
 
-
-##  START Skip-------------------------------------------
-AUCSubPop<- vector()
-AUCSubDDIPop<- vector()
-
-for (i in 1:nPop){
-# Substrate AUC-----------
-  AUC_SubDeets<- Simcyp::GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Substrate,individual = i,conn, allDoses = TRUE)
-
-# Inhibtion =0 i.e substrate pk WITHOUT the presence of inhibitor
-indSubj_AUC<-  AUC_SubDeets$AUC[AUC_SubDeets$Inhibition==0][1]  #OVERALL
-
-# Inhibtion =1 i.e substrate pk WITH the presence of inhibitor
-indSubj_AUC_DDI<- AUC_SubDeets$AUC[AUC_SubDeets$Inhibition==1][1] #OVERALL
-
-AUCSubPop<-c(AUCSubPop, indSubj_AUC)
-AUCSubDDIPop<-c(AUCSubDDIPop, indSubj_AUC_DDI)
-
-##  END Skip-------------------------------------------
-
-
-# Inhibitor AUC---Not needed --------
-# AUC_InbDeets<- Simcyp::GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Inhibitor1,individual = i,conn, allDoses = TRUE)
-# 
-# # Inhibtion =1 i.e inhibitor pk 
-# indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][1]  #OVERALL
-# 
-# # LastDose<-nrow(AUC_InbDeets)  #For the last dose
-# # indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][LastDose]
-# 
-# # FirstDose<-2  #For the First dose
-# # indSubi_AUC<-  AUC_InbDeets$AUC[AUC_InbDeets$Inhibition==1][FirstDose]
-# 
-# AUCInbPop<-c(AUCInbPop, indSubi_AUC)
-}
-
-
+if(file.exists("MultipopulationAUCData.RData")){
+  load("MultipopulationAUCData.RData")
+  
+} else {
+  
+  # Substrate AUC-----------
+  
+  AUC_SubDeets<- GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Substrate,individual = c(1:nPop),conn, allDoses = TRUE)
+  # Sort the AUC_SubDeets dataframe by Individual
+  AUC_SubDeets <- AUC_SubDeets[order(AUC_SubDeets$Individual),]
+  
+  # Inhibtion =0 i.e substrate pk WITHOUT the presence of inhibitor
+  AUCSubPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==0) %>% pull(AUC)    #OVERALL
+  
+  # Inhibtion =1 i.e substrate pk WITH the presence of inhibitor
+  AUCSubDDIPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==1) %>% pull(AUC)  #OVERALL
+  
+ }
 
 #idAUC=AUC first dose 
 #4.Get AUC values for each individual for previously run workspace
@@ -106,7 +82,7 @@ legend("topright",c("AUC Sub HV","AUC Sub RI.l3","AUC Sub RI.36"), col=c(1,2,3),
 abline(v=0.285444, lty=2)
 
 #2.Calculate mean and variance of the AUC in both populations. 
-#population 1 has a mean m.pop1 and variance v.pop1
+# population 1 has a mean m.pop1 and variance v.pop1
 # population 2 has a mean m.pop2 and variance v.pop2
 
 m.pop1<-mean(AUC.1)
@@ -143,24 +119,10 @@ alpha<-0.05
 c.value<-matrix(0,1,length(sample.1)) # 
 
 for (i in 1:length(sample.1)){
-  # Understanding the difference in qnorm, pnorm, dnorm 
-  # https://thomasleeper.com/Rcourse/Tutorials/distributions.html#:~:text=The%20pnorm%20function%20provides%20the,at%20a%20specified%20cumulative%20density.
-  c.value[1,i]<-qnorm(1-alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
+   c.value[1,i]<-qnorm(1-alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
   # Here we are getting the z (crit) value where we observe 1-aplha probability.  
-  ## AO:NOTES
-  #----------
-  #assuming z0 is a possible value in your data. e.g in a dice, what is the probability of getting value 3
-  #in context the sample size
-  #probability= area under the graph at point z0.
-  #pnorm= probability of Z<=z0. It only computes the area BELOW
-  #qnorm is the inverse of Pnorm
-  # so you if you are setting the probability/ area under the curve (set to 1-alpha ).then you are finding what z0 value is 
-  
   
 }
-# AO:
-#Here we see the greater the number of samples, the closer Z0=C.value is to the mean mean of 0.21...
-#Meaning the SD/ deviation of the AUC data is reducing. MEaning more certainty if the sample size increases. 
 
 
 #5.Calculating power for each sample size
@@ -169,11 +131,6 @@ power.PK<-matrix(0,1,length(sample.2))
 
 for (i in 1:length(sample.2)){
   power.PK[1,i]<-1-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
-  ## AO:NOTES
-  #----------
-  # here we are calculating pnorm. meaning we have the Z0=c.value now, then we work out what the probability is. then take away from 1.
-  #pnorm= probability of Z<=z0. It only computes area BELOW
-  # 1-pmorn gives you the are above which is power calc aka. significance level/ alpha
 }
 
 power<-power.PK*100
@@ -187,8 +144,6 @@ alpha<-0.05
 c.value<-matrix(0,1,length(sample.1)) # 
 
 for (i in 1:length(sample.1)){
-  # Understanding the difference in qnorm, pnorm, dnorm 
-  # https://thomasleeper.com/Rcourse/Tutorials/distributions.html#:~:text=The%20pnorm%20function%20provides%20the,at%20a%20specified%20cumulative%20density.
   c.value[1,i]<-qnorm(alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
   
 }
@@ -199,11 +154,6 @@ power.PK<-matrix(0,1,length(sample.2))
 
 for (i in 1:length(sample.2)){
   power.PK[1,i]<-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
-  ## AO:NOTES
-  #----------
-  # here we are calculating pnorm. meaning we have the Z0=c.value now, then we work out what the probability is. then take away from 1.
-  #pnorm= probability of Z<=z0. It only computes area BELOW
-  # 1-pmorn gives you the are above which is power calc aka. significance level/ alpha
 }
 
 power<-power.PK*100

@@ -23,7 +23,7 @@ setwd(path_user)
 
 # 4. Set workspace ----
 
-SetWorkspace("Default DDI V23.wksz")
+SetWorkspace("Default DDI V24.wksz")
 
 
 # 5. Run a simulation ----
