@@ -14,4 +14,4 @@ A graph of the predicted vs observed AUC and Cmax ratios data is generated in th
 
 ## How to run this example
 
-After downloading all the files, open `AUCt for user defined interval.R` file and run the script. An E-Learning video on how to run this script can be found in your Simcyp members area.
+After downloading all the files, open `AUCt for user defined interval.R` file and run the script. An E-Learning video on how to run this script can be found on Simcyp members area.
