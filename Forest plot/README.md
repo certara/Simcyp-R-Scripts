@@ -16,4 +16,4 @@ After downloading all the files, open `Simcyp R package - Forest plot example.R`
 
 
 ## Publication
-Using the Simcyp™ R Package for PBPK Simulation Workflows With the Simcyp™ Simulator : https://ascpt.onlinelibrary.wiley.com/doi/10.1002/psp4.70022 
+[Using the Simcyp™ R Package for PBPK Simulation Workflows With the Simcyp™ Simulator](https://ascpt.onlinelibrary.wiley.com/doi/10.1002/psp4.70022) 
