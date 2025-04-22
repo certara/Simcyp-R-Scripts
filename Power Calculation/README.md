@@ -1,6 +1,6 @@
 # Power calculation-DDI study
 
-The workspace used looks at the interaction between Lorezapam and Probenecid. In this example, we determine the sample size that is required for correctly detecting the difference between 2 population group when there is a true difference. For this we use AUC as the measurement parameter. 
+The workspace used looks at the interaction between Lorezapam and Probenecid. In this example, we determine the sample size that is required for correctly detecting the difference between 2 population groups when there is a true difference. For this we use AUC as the measurement parameter. 
 
 ## This script shows
 
