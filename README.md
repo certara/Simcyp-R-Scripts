@@ -1,7 +1,7 @@
 # Simcyp R Example Scripts
 
 ## Description 
-A package to support R script interactions with the Simcyp simulator (>=V22). Provides functions to initialise Simcyp, load and modify workspaces and interrogate results.  
+A package to support R script interactions with the Simcyp simulator (V22-V24). Provides functions to initialise Simcyp, load and modify workspaces and interrogate results.  
 
 
 ## System Requirements 
