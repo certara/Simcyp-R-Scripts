@@ -1,21 +1,21 @@
 # Simcyp R Example Scripts
 
 ## Description 
-A package to support R script interactions with the Simcyp simulator (>=V23). Provides functions to initialise Simcyp, load and modify workspaces and interrogate results.  
+A package to support R script interactions with the Simcyp simulator (>=V22). Provides functions to initialise Simcyp, load and modify workspaces and interrogate results.  
 
 
 ## System Requirements 
 
 * Windows 10 
 * Simcyp Simulator license
-* R >= 4.3.2 
+* R >= 4.4.2 
 
 ## Installation 
 
 The Simcyp R Package requires additional package dependencies, which can first be installed from CRAN using the following command: 
 
 ```r
-install.packages(c("Rcpp", "XML", "xml2", "RcppThread", "R.utils", "RSQLite", "DBI", "rlang", "tibble", "fs", "PKNCA", "dplyr", "stringr", "ggplot2", "pracma")) 
+install.packages(c("Rcpp", "XML", "xml2", "RcppThread", "R.utils", "RSQLite", "DBI", "rlang", "tibble", "fs", "PKNCA", "dplyr", "stringr", "ggplot2", "pracma", "rstudioapi")) 
 ```
 
 The Simcyp R package is distributed from Simcyp support via a download link and can be requested from simcyp.support@certara.com.
@@ -23,7 +23,7 @@ The Simcyp R package is distributed from Simcyp support via a download link and 
 First, download the package archive file from the Simcyp download portal, then navigate to RStudio \> Tools \> Install Packages. In the "Install from:" dropdown selection, change to "Package archive file" and select the Simcyp R package `.zip` file in your file explorer.
 
 
-The current Released Version  of the Simcyp R package is `Simcyp_23.0.64.zip`.
+The current Released Version  of the Simcyp R package is `Simcyp_24.0.18.zip`.
 
 ## Examples 
 
