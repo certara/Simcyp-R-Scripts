@@ -12,4 +12,4 @@ In this example we show you how to call in and run a simulation on various Simcy
 
 ## How to run this example
 
-After downloading all the files, open `Multi-Species Simulation.R` file and run the script.
+After downloading all the files and folders, open `Multi-Species Simulation.R` file and run the script.
