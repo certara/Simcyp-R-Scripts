@@ -44,5 +44,5 @@ Other learning videos can be found on YouTube:
 * [Forest plots](https://youtu.be/bi6M6IpCYdc?si=gzMcdbEolDqc7hpl)
 
 ## Publications:  
-* [Using the Simcyp R Package for PBPK Simulation Workflows With the Simcyp Simulator](https://ascpt.onlinelibrary.wiley.com/doi/10.1002/psp4.70022)
+* [Using the Simcyp R Package for PBPK Simulation Workflows With the Simcyp Simulator]([https://ascpt.onlinelibrary.wiley.com/doi/10.1002/psp4.70022](https://pubmed.ncbi.nlm.nih.gov/40179011/))
 * [SimRFlow: An R-based workflow for automated high-throughput PBPK simulation with the Simcyp® simulator](https://www.frontiersin.org/journals/pharmacology/articles/10.3389/fphar.2022.929200/full)
