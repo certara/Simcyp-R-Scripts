@@ -12,4 +12,4 @@ The workspace used looks at the interaction between Lorezapam and Probenecid. In
 
 ## How to run this example
 
-After downloading all the files, open `Power calculation-DDI_V24.R` file and run the script. A detailed video Simcyp™ power calculation tool can be found on [YouTube]( https://www.youtube.com/watch?v=ALCtd9Mw5Ew). 
+After downloading all the files, open `Power calculation-DDI_V25.R` file and run the script. A detailed video Simcyp™ power calculation tool can be found on [YouTube]( https://www.youtube.com/watch?v=ALCtd9Mw5Ew). 

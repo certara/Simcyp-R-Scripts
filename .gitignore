@@ -15,3 +15,5 @@
 # Ignoring database files b/c they're so large and you can generate them from the workspace anyway
 *.db
 
+*.Rd
+

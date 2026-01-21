@@ -1,10 +1,10 @@
 ############################################################################################
-# AO:16/04/2024                                                                            #
+# AO:20/01/2026                                                                            #
 #                                Simcyp Power Calculation                                  #
 ############################################################################################
 
 
-rm(list=ls()) 
+rm(list=ls())
 library("Simcyp")
 library("RSQLite")
 library("tidyverse")
@@ -22,40 +22,37 @@ Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
 
 
-SetWorkspace("Lorezapam+Probenecid_v24.wksz") #Enter name of workspace
+SetWorkspace("Lorezapam+Probenecid.wksz") #Enter name of workspace
 
-Simulate(database= "Lorezapam+Probenecid.db") 
+Simulate(database= "Lorezapam+Probenecid.db")
 
 conn<- RSQLite::dbConnect(SQLite(), "Lorezapam+Probenecid.db")
 
-nPop<-GetParameter(SimulationParameterID$Pop,CategoryID$SimulationData, CompoundID$Substrate) # total population size 
+nPop<-GetParameter(SimulationParameterID$Pop,CategoryID$SimulationData, CompoundID$Substrate) # total population size
 nPop1<-GetParameter(SimulationParameterID$Poppercent1,CategoryID$SimulationData, CompoundID$Substrate) # 1st pop size
 nPop2<-GetParameter(SimulationParameterID$Poppercent2,CategoryID$SimulationData, CompoundID$Substrate) # 2nd pop size
 nPop3<-GetParameter(SimulationParameterID$Poppercent3,CategoryID$SimulationData, CompoundID$Substrate) # 3rd pop size
 
 # AUC Extraction from simulated DDI study (Lorezapam+Probenecid) ------------------------------------
-# AO: This process takes a while. Therefore, load the pre-saved data file.
 
-if(file.exists("MultipopulationAUCData.RData")){
-  load("MultipopulationAUCData.RData")
-  
-} else {
-  
   # Substrate AUC-----------
-  
+
   AUC_SubDeets<- GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Substrate,individual = c(1:nPop),conn, allDoses = TRUE)
   # Sort the AUC_SubDeets dataframe by Individual
   AUC_SubDeets <- AUC_SubDeets[order(AUC_SubDeets$Individual),]
-  
+
   # Inhibtion =0 i.e substrate pk WITHOUT the presence of inhibitor
   AUCSubPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==0) %>% pull(AUC)    #OVERALL
-  
+
   # Inhibtion =1 i.e substrate pk WITH the presence of inhibitor
   AUCSubDDIPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==1) %>% pull(AUC)  #OVERALL
-  
- }
 
-#idAUC=AUC first dose 
+
+# Option to load the pre-saved data file.
+# load("MultipopulationAUCData.RData")
+
+
+#idAUC=AUC first dose
 #4.Get AUC values for each individual for previously run workspace
 AUC.sub<-AUCSubPop
 AUC.sub.healthy<-AUC.sub[1:1000]
@@ -67,7 +64,7 @@ AUC.sub.inb.healthy<-AUC.sub.inb[1:1000]
 AUC.sub.inb.renal.36<-AUC.sub.inb[1001:2000]
 AUC.sub.inb.renal.l3<-AUC.sub.inb[2001:3000]
 
-# 
+#
 # AUC.1<-AUC.sub.renal.l3         #Sub AUC
 # AUC.2<-AUC.sub.inb.renal.l3     #Interaction AUC
 AUC.1<-AUC.sub.healthy        #Sub HV
@@ -75,14 +72,13 @@ AUC.2<-AUC.sub.renal.l3    #Sub RI.l3
 AUC.3<-AUC.sub.renal.36    #Sub RI.l3
 
 #Plot graphs of population values
-plot(density(AUC.1),col=1, lwd=2, main="", xlab="AUC", ylim=c(0, 6), xlim=c(0,0.8))
+plot(density(AUC.1),col=1, lwd=2, main="", xlab="AUC", ylim=c(0, 7), xlim=c(0,0.8))
 lines(density(AUC.2),col=2, lwd=2)
 lines(density(AUC.3),col=3, lwd=2)
 legend("topright",c("AUC Sub HV","AUC Sub RI.l3","AUC Sub RI.36"), col=c(1,2,3), lwd=2, lty=1)#, "AUC Sub RI 36" ,3
-# legend("topright",c("AUC substrate","AUC substrate+inhibitor"), col=c(1,2), lwd=2, lty=1)
-abline(v=0.285444, lty=2)
 
-#2.Calculate mean and variance of the AUC in both populations. 
+
+#2.Calculate mean and variance of the AUC in both populations.
 # population 1 has a mean m.pop1 and variance v.pop1
 # population 2 has a mean m.pop2 and variance v.pop2
 
@@ -116,13 +112,13 @@ sample.2<-sample.1
 
 #METHOD 1: If m.pop2>m.pop1
 #4a. Define critical value(for an alpha of 0.05) of population 1 by sample size
-alpha<-0.05   
-c.value<-matrix(0,1,length(sample.1)) # 
+alpha<-0.05
+c.value<-matrix(0,1,length(sample.1)) #
 
 for (i in 1:length(sample.1)){
    c.value[1,i]<-qnorm(1-alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
-  # Here we are getting the z (crit) value where we observe 1-aplha probability.  
-  
+  # Here we are getting the z (crit) value where we observe 1-aplha probability.
+
 }
 
 
@@ -141,12 +137,12 @@ power<-power.PK*100
 
 #METHOD 2: If m.pop2<m.pop1
 #4b. Define critical value(for an alpha of 0.05) of population 1 by sample size
-alpha<-0.05   
-c.value<-matrix(0,1,length(sample.1)) # 
+alpha<-0.05
+c.value<-matrix(0,1,length(sample.1)) #
 
 for (i in 1:length(sample.1)){
   c.value[1,i]<-qnorm(alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
-  
+
 }
 
 #5.Calculating power for each sample size
