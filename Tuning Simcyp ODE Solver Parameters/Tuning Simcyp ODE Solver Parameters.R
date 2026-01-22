@@ -27,7 +27,7 @@ Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
 path_user <- Simcyp::ScriptLocation()
 setwd(path_user)
 
-SetWorkspace("V24_B305_minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
+SetWorkspace("minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
 
 db_file  <- array( dim = Tot_iter )
 
@@ -46,23 +46,23 @@ library("RSQLite")
 
 for( iter in 1 : Tot_iter ){
    conn <- RSQLite::dbConnect( SQLite(), db_file[iter] )
-   
+
    # SIMULATION DURATIONS
    PopResults    <- dbGetQuery( conn, "SELECT * FROM PopResults10" )
    sim_duration  <- PopResults$SimulationDuration
-   
+
    res.df$mean_time[iter] <- mean( sim_duration )
    res.df$sd_time[  iter] <-   sd( sim_duration )
-   
+
    # NO. OF SUBJECTS WITH A NEGATIVE CONC
    negC <- vector()
    for(k in 1:100){
       Csys <- GetProfile_DB(ProfileID$Csys, compound = CompoundID$Substrate, individual = k, conn, inhibition = FALSE)
       negC[k] <- as.numeric( 0 < sum( ( Csys < 0) ) ) # there is a neg conc or not
    }
-   
+
    res.df$subjects_negC[iter] <- sum( negC )
-   
+
    RSQLite::dbDisconnect( conn )
 }
 
