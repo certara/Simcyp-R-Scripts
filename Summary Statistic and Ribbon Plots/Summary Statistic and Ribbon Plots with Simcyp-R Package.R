@@ -1,9 +1,9 @@
 # Extract Profile Statistics and Plot ----
 # Clear Global Environment ----
-rm(list=ls()) 
+rm(list=ls())
 
 # 1. Load Packages -----
-# Required packages for Simcyp-R 
+# Required packages for Simcyp-R
 library("Simcyp")
 library("RSQLite")
 # Others
@@ -12,7 +12,7 @@ library("ggplot2")
 
 # 2. Initialise Simcyp engine ----
 
-Simcyp::Initialise(species = SpeciesID$Human) 
+Simcyp::Initialise(species = SpeciesID$Human)
 
 
 # 3. Set script to source file location ----
@@ -23,7 +23,7 @@ setwd(path_user)
 
 # 4. Set workspace ----
 
-SetWorkspace("Default DDI V24.wksz")
+SetWorkspace("Default DDI.wksz")
 
 
 # 5. Run a simulation ----
@@ -37,7 +37,7 @@ conn<- RSQLite::dbConnect(SQLite(), "NameYourFile.db")
 
 # 6. Extract  concentration-Time data for the full population ----
 
-# Population size 
+# Population size
 nSub<- GetParameter(SimulationParameterID$Pop,CategoryID$SimulationData, CompoundID$Substrate)
 
 # Create an empty vector to store profiles for each subject
@@ -48,21 +48,21 @@ CsysInh<- vector()
 
 
 for (i in 1:nSub ){   # no of subject = 100
-   
+
    # Time Profile
    Current_Time<-Simcyp::GetProfile_DB(ProfileID$nTimeSub, compound=-1 , inhibition = FALSE, conn, individual = i) # Time data
-   
-   # Csys without Inhibition 
+
+   # Csys without Inhibition
    Current_Csys<-GetProfile_DB(ProfileID$Csys , individual=i, compound=CompoundID$Substrate, conn, inhibition = FALSE) # substrate conc in plasma in the absence of drug interaction
    # Csys with Inhibition
    Current_CsysInh<-GetProfile_DB(ProfileID$Csys , individual=i, compound=CompoundID$Substrate, conn, inhibition = TRUE) # substrate conc in plasma in the presence of drug interaction
-   
+
    # combine
    Group <- c(Group, rep(i,length(Current_Csys)))
-   Time <- c(Time,Current_Time) 
+   Time <- c(Time,Current_Time)
    Csys<- c(Csys, Current_Csys)
    CsysInh<-  c(CsysInh, Current_CsysInh)
-   
+
 }
 
 # Combine all the data and save as a dataframe
@@ -99,10 +99,10 @@ ProfileTrialSummaryInh<- GetProfileStats_DB(ProfileID$Csys,CompoundID$Substrate,
 View(ProfileTrialSummaryInh)
 
 # 9. Create a Ribbon Plot -----
-# Sub Profile Mean, 5th and 95th percentile 
+# Sub Profile Mean, 5th and 95th percentile
 PlotProfilePercentile_DB(ProfileId = ProfileID$Csys, CompoundId = CompoundID$Substrate, Inhibition = FALSE, Upper = 95, Lower = 5, conn, Col="red")
 
-# Sub+Inh Profile Mean, 5th and 95th percentile 
+# Sub+Inh Profile Mean, 5th and 95th percentile
 PlotProfilePercentile_DB(ProfileId = ProfileID$Csys, CompoundId = CompoundID$Substrate, Inhibition = TRUE, Upper = 95, Lower = 5, conn, Col=c("red","blue"))
 
 # Turn off Ribbon plot
@@ -118,11 +118,11 @@ PlotProfilePercentile_DB(ProfileId = ProfileID$Csys, CompoundId = CompoundID$Sub
 # PD statistic:GetPDResultStats_DB ----
 
 # 11. Disconnect the database connection ----
-RSQLite::dbDisconnect(conn) 
+RSQLite::dbDisconnect(conn)
 
 
 # 12. Disconnect the Simcyp Simulator Engine from R session ----
-Simcyp::Uninitialise() 
+Simcyp::Uninitialise()
 
 # END ----
 
