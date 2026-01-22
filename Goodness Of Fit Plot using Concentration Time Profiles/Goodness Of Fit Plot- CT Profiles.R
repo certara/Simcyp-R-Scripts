@@ -6,8 +6,8 @@
 #                                                                                               #
 #################################################################################################
 
-# Clear Global Environment 
-rm(list=ls()) 
+# Clear Global Environment
+rm(list=ls())
 
 
 # load packages
@@ -24,15 +24,15 @@ setwd(path_user)
 
 
 # Here we check if "GOFObsandPredData.RData" file exists in your working folder the load it.
-# Otherwise, we create it.  
+# Otherwise, we create it.
 # -------------------------------------------------------------------------------------------
 if(file.exists("GOFObsandPredData.RData")){
-  
+
   # Load pre-saved data
   load("GOFObsandPredData.RData")
-  
+
 } else {
-  
+
   # We will:
   # .load the Human Simcyp simulator
   # .Create the observed CT dataframe of 3 studies
@@ -79,14 +79,14 @@ ObsCsys_ngmLFleishaker1994<- c(2.463,9.852,19.704,22.168,18.227,15.271,13.301,11
 # ----------------------- Obtain Predicted Data and Save into a data frame -----------------------
 # Data 1: deBree1983
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
+SetWorkspace("Workspaces/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
 Simulate(database= "Fig1A_Debree1983_100mg_single_oral.db") #This command is needed every time a new workspace is imported
 conn<- RSQLite::dbConnect(SQLite(), "Fig1A_Debree1983_100mg_single_oral.db")
 
 # Extract CT profile
 Profile_Unit<-GetProfileUnit(ProfileID$Csys, conn)
 Profile_Unit
-CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDeBree1983, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
+CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDeBree1983, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base
 PredTimeDeBree1983<-CsysDB$x
 PredCsys_mgLDeBree1983<-CsysDB$y
 PredCsys_ngmLDeBree1983<-PredCsys_mgLDeBree1983*1000 # unit transformation
@@ -96,12 +96,12 @@ RSQLite::dbDisconnect(conn)
 
 # Data 2: Devries1993
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig1B_Devries1993_100mg_single_oral.wksz") 
-Simulate(database= "Fig1B_Devries1993_100mg_single_oral.db") 
+SetWorkspace("Workspaces/Fig1B_Devries1993_100mg_single_oral.wksz")
+Simulate(database= "Fig1B_Devries1993_100mg_single_oral.db")
 conn<- RSQLite::dbConnect(SQLite(), "Fig1B_Devries1993_100mg_single_oral.db")
 
 # Extract CT profile
-CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDevries1993, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
+CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeDevries1993, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base
 PredTimeDevries1993<-CsysDB$x
 PredCsys_mgLDevries1993<-CsysDB$y
 PredCsys_ngmLDevries1993<-PredCsys_mgLDevries1993*1000 #unit transformation
@@ -112,12 +112,12 @@ RSQLite::dbDisconnect(conn)
 
 # Data 3: Fleishaker1994
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig2_Fleishaker1994_MD.wksz") 
-Simulate(database= "Fig2_Fleishaker1994_MD.db") 
+SetWorkspace("Workspaces/Fig2_Fleishaker1994_MD.wksz")
+Simulate(database= "Fig2_Fleishaker1994_MD.db")
 conn<- RSQLite::dbConnect(SQLite(), "Fig2_Fleishaker1994_MD.db")
 
 # Extract CT profile
-CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeFleishaker1994, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base 
+CsysDB<- GetProfileAtSpecifiedTimes_DB(ObsTimeFleishaker1994, ProfileID$Csys,individual = 1,inhibition=FALSE,CompoundID$Substrate,conn) #Get the Csys data for the specified time points from the data base
 PredTimeFleishaker1994<-CsysDB$x
 PredCsys_mgLFleishaker1994<-CsysDB$y
 PredCsys_ngmLFleishaker1994<-PredCsys_mgLFleishaker1994*1000 #unit transformation
@@ -127,17 +127,17 @@ RSQLite::dbDisconnect(conn)
 
 # ------- Combine both observed and predicted data into a new dataframe for GOF plot ------------
 # Dataframe should include the following columns: Study, Observed, Predicted
-DataDeBree1983<- data.frame(Study=factor(rep("deBree1983", length(ObsTimeDeBree1983))), 
-                            Observed= ObsCsys_ngmLDeBree1983 , 
-                            Predicted= PredCsys_ngmLDeBree1983 ) 
+DataDeBree1983<- data.frame(Study=factor(rep("deBree1983", length(ObsTimeDeBree1983))),
+                            Observed= ObsCsys_ngmLDeBree1983 ,
+                            Predicted= PredCsys_ngmLDeBree1983 )
 
-DataDevries1993<- data.frame(Study=factor(rep("Devries1993", length(ObsTimeDevries1993))), 
-                             Observed= ObsCsys_ngmLDevries1993 , 
-                             Predicted= PredCsys_ngmLDevries1993 ) 
+DataDevries1993<- data.frame(Study=factor(rep("Devries1993", length(ObsTimeDevries1993))),
+                             Observed= ObsCsys_ngmLDevries1993 ,
+                             Predicted= PredCsys_ngmLDevries1993 )
 
-DataFleishaker1994<- data.frame(Study=factor(rep("Fleishaker1994", length(ObsTimeFleishaker1994))), 
-                                Observed= ObsCsys_ngmLFleishaker1994 , 
-                                Predicted= PredCsys_ngmLFleishaker1994 ) 
+DataFleishaker1994<- data.frame(Study=factor(rep("Fleishaker1994", length(ObsTimeFleishaker1994))),
+                                Observed= ObsCsys_ngmLFleishaker1994 ,
+                                Predicted= PredCsys_ngmLFleishaker1994 )
 
 GOFData<- rbind(DataDeBree1983, DataDevries1993, DataFleishaker1994)
 
@@ -157,28 +157,28 @@ GraphTitle<- "Goodness of fit plot- Fluvoxamine"
 round_up<- function(x) { 10^ceiling(log10(x))}
 round_down<- function(x) 10^floor(log10(x))
 Limits<- c(     #May need to update!!!
-  min(c(GOFData$Observed , GOFData$Predicted ), na.rm = T)+1,  
+  min(c(GOFData$Observed , GOFData$Predicted ), na.rm = T)+1,
   round_up(max(c(GOFData$Observed , GOFData$Predicted), na.rm = T))+100)
 
 
  # ---------------------------GOF and Guest plot -------------------------
 
 Plot1 <- ggplot(data=GOFData, aes(x=Observed, y=Predicted)) + #,xaxs="i", yaxs="i"
-  geom_point(aes(color=factor(Study)), size=2) + 
-  geom_abline(slope=1,intercept=0) +  # Line of identity 
+  geom_point(aes(color=factor(Study)), size=2) +
+  geom_abline(slope=1,intercept=0) +  # Line of identity
   geom_abline(slope=1.25,intercept=0,color="gray") +  #  1.25 fold deviation
   geom_abline(slope=1/1.25,intercept=0,color="gray") +   # 1.25 fold deviation
-  geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation 
-  geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation 
+  geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
+  geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
   coord_trans(x="log10", y="log10") +
   scale_x_continuous(expand=c(0,0), name=xLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   scale_y_continuous(expand=c(0,0), name=yLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   # limits=c(breaks[[1]], breaks[[length(breaks)]])
-  theme(aspect.ratio = 1, 
+  theme(aspect.ratio = 1,
         # axis.line = element_line(size = 0.3, colour = "black", linetype=1),
-        # axis.ticks = element_line(size = 1, color="black"), 
-        plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5), 
-        panel.border = element_rect(color = "black", fill = NA,size = 1))+ 
+        # axis.ticks = element_line(size = 1, color="black"),
+        plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5),
+        panel.border = element_rect(color = "black", fill = NA,size = 1))+
   ggtitle(GraphTitle)+
   theme(  # Legend position
     panel.background = element_rect(fill='transparent'), #transparent panel bg
@@ -188,7 +188,7 @@ Plot1 <- ggplot(data=GOFData, aes(x=Observed, y=Predicted)) + #,xaxs="i", yaxs="
     legend.position = c(0, 1), #legend.position = "bottom"
     legend.justification = c("left", "top"),
     legend.box.just = "left",
-    legend.margin = margin(6, 6, 6, 6), 
+    legend.margin = margin(6, 6, 6, 6),
     legend.background = element_rect(fill='transparent'),
     legend.key=element_blank()) +
   labs(color=NULL)   # remove legend title
@@ -203,20 +203,20 @@ Error1.25 <- data.frame(Observed = seq(min(Limits), max(Limits), by= 0.01)) %>% 
 
 
 Plot2<- ggplot() + #,xaxs="i", yaxs="i"
-  geom_point(data= GOFData, aes(x=Observed, y=Predicted, color=factor(Study)), size=2) + 
-  geom_abline(slope=1,intercept=0) +  # Line of identity 
+  geom_point(data= GOFData, aes(x=Observed, y=Predicted, color=factor(Study)), size=2) +
+  geom_abline(slope=1,intercept=0) +  # Line of identity
   geom_ribbon(data=Error1.25, aes(x=Observed,ymin=Predictedmin,ymax=Predictedmax),alpha=0.5,fill="grey")+
-  geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation 
-  geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation 
+  geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
+  geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
   coord_trans(x="log10", y="log10") +
   scale_x_continuous(expand=c(0,0), name=xLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   scale_y_continuous(expand=c(0,0), name=yLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   # limits=c(breaks[[1]], breaks[[length(breaks)]])
-  theme(aspect.ratio = 1, 
+  theme(aspect.ratio = 1,
         # axis.line = element_line(size = 0.3, colour = "black", linetype=1),
-        # axis.ticks = element_line(size = 1, color="black"), 
-        plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5), 
-        panel.border = element_rect(color = "black", fill = NA,size = 1))+ 
+        # axis.ticks = element_line(size = 1, color="black"),
+        plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5),
+        panel.border = element_rect(color = "black", fill = NA,size = 1))+
   ggtitle(GraphTitle)+
   theme(  # Legend position
     panel.background = element_rect(fill='transparent'), #transparent panel bg
@@ -226,7 +226,7 @@ Plot2<- ggplot() + #,xaxs="i", yaxs="i"
     legend.position = c(0, 1), #legend.position = "bottom"
     legend.justification = c("left", "top"),
     legend.box.just = "left",
-    legend.margin = margin(6, 6, 6, 6), 
+    legend.margin = margin(6, 6, 6, 6),
     legend.background = element_rect(fill='transparent'),
     legend.key=element_blank()) +
   labs(color=NULL)   # remove legend title
