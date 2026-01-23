@@ -170,7 +170,7 @@ Plot1 <- ggplot(data=GOFData, aes(x=Observed, y=Predicted)) + #,xaxs="i", yaxs="
   geom_abline(slope=1/1.25,intercept=0,color="gray") +   # 1.25 fold deviation
   geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
   geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
-  coord_trans(x="log10", y="log10") +
+  coord_transform(x = "log10", y = "log10") +
   scale_x_continuous(expand=c(0,0), name=xLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   scale_y_continuous(expand=c(0,0), name=yLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   # limits=c(breaks[[1]], breaks[[length(breaks)]])
@@ -178,7 +178,7 @@ Plot1 <- ggplot(data=GOFData, aes(x=Observed, y=Predicted)) + #,xaxs="i", yaxs="
         # axis.line = element_line(size = 0.3, colour = "black", linetype=1),
         # axis.ticks = element_line(size = 1, color="black"),
         plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5),
-        panel.border = element_rect(color = "black", fill = NA,size = 1))+
+        panel.border = element_rect(color = "black", fill = NA, linewidth = 1)) +
   ggtitle(GraphTitle)+
   theme(  # Legend position
     panel.background = element_rect(fill='transparent'), #transparent panel bg
@@ -208,7 +208,7 @@ Plot2<- ggplot() + #,xaxs="i", yaxs="i"
   geom_ribbon(data=Error1.25, aes(x=Observed,ymin=Predictedmin,ymax=Predictedmax),alpha=0.5,fill="grey")+
   geom_abline(slope=2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
   geom_abline(slope=1/2,intercept=0,color="black",linetype="dashed") +  # 2 fold deviation
-  coord_trans(x="log10", y="log10") +
+  coord_transform(x="log10", y="log10") +
   scale_x_continuous(expand=c(0,0), name=xLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   scale_y_continuous(expand=c(0,0), name=yLabelName, breaks=breaks, labels=breaks, limits=Limits) +
   # limits=c(breaks[[1]], breaks[[length(breaks)]])
@@ -216,7 +216,7 @@ Plot2<- ggplot() + #,xaxs="i", yaxs="i"
         # axis.line = element_line(size = 0.3, colour = "black", linetype=1),
         # axis.ticks = element_line(size = 1, color="black"),
         plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0.5),
-        panel.border = element_rect(color = "black", fill = NA,size = 1))+
+        panel.border = element_rect(color = "black", fill = NA, linewidth = 1)) +
   ggtitle(GraphTitle)+
   theme(  # Legend position
     panel.background = element_rect(fill='transparent'), #transparent panel bg
