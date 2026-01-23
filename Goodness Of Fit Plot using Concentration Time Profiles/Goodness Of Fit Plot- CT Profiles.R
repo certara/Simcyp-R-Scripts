@@ -34,7 +34,7 @@ if(file.exists("GOFObsandPredData.RData")){
 } else {
 
   # We will:
-  # .load V24 Human Simcyp simulator
+  # .load Human Simcyp simulator
   # .Create the observed CT dataframe of 3 studies
   # .Run the simulation for each study and Obtain the Predicted CT Data and store into a dataframe
   # .Combine both observed and predicted data into a new dataframe for GOF plotting
@@ -79,7 +79,7 @@ ObsCsys_ngmLFleishaker1994<- c(2.463,9.852,19.704,22.168,18.227,15.271,13.301,11
 # ----------------------- Obtain Predicted Data and Save into a data frame -----------------------
 # Data 1: deBree1983
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
+SetWorkspace("Workspaces/Fig1A_Debree1983_100mg_single_oral.wksz") #Enter name of workspace
 Simulate(database= "Fig1A_Debree1983_100mg_single_oral.db") #This command is needed every time a new workspace is imported
 conn<- RSQLite::dbConnect(SQLite(), "Fig1A_Debree1983_100mg_single_oral.db")
 
@@ -96,7 +96,7 @@ RSQLite::dbDisconnect(conn)
 
 # Data 2: Devries1993
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig1B_Devries1993_100mg_single_oral.wksz")
+SetWorkspace("Workspaces/Fig1B_Devries1993_100mg_single_oral.wksz")
 Simulate(database= "Fig1B_Devries1993_100mg_single_oral.db")
 conn<- RSQLite::dbConnect(SQLite(), "Fig1B_Devries1993_100mg_single_oral.db")
 
@@ -112,7 +112,7 @@ RSQLite::dbDisconnect(conn)
 
 # Data 3: Fleishaker1994
 # Set workspace and run simulation
-SetWorkspace("V24 Workspaces/Fig2_Fleishaker1994_MD.wksz")
+SetWorkspace("Workspaces/Fig2_Fleishaker1994_MD.wksz")
 Simulate(database= "Fig2_Fleishaker1994_MD.db")
 conn<- RSQLite::dbConnect(SQLite(), "Fig2_Fleishaker1994_MD.db")
 
