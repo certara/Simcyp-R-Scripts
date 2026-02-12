@@ -17,3 +17,6 @@
 
 *.Rd
 
+# ignoring Rproj files
+*.Rproj
+
