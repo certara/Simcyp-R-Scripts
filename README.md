@@ -23,7 +23,7 @@ The Simcyp R package is distributed from Simcyp support via a download link and 
 First, download the package archive file from the Simcyp download portal, then navigate to RStudio \> Tools \> Install Packages. In the "Install from:" dropdown selection, change to "Package archive file" and select the Simcyp R package `.zip` file in your file explorer.
 
 
-The current Released Version  of the Simcyp R package is `Simcyp_25.0.32.zip`.
+The current Released Version  of the Simcyp R package is `Simcyp_25.0.44.zip`.
 
 ## Examples 
 
