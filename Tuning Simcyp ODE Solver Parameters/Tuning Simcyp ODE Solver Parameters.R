@@ -1,6 +1,6 @@
 rm( list = ls() )
 
-library("Simcyp")
+library("SimcypR")
 
 
 #######  PREPARATIONS - combinations of solver-parameters to examine
@@ -9,8 +9,8 @@ Tot_iter <- 9 # {RK5, Livermore, CVODES} x {rtol = 0,1, 0.01, 0.001}
 
 solvName <- c("RK5", "Livermore", "CVODES")
 solv     <- c(1,1,1,2,2,2,3,3,3) # 1:RK5, 2:Livermore, 3:CVODES
-rtol     <- c(1e-1 ^ (1:3), 1e-1 ^ (1:3), 1e-1 ^ (1:3))
-atol     <- rtol * 1e-2
+rtol     <- c(1e-8, 1e-9, 1e-10, 1e-8, 1e-9, 1e-10, 1e-8, 1e-9, 1e-10)
+atol     <- rtol * 10^6
 
 res.df   <- data.frame(matrix(ncol = 6, nrow = Tot_iter,
                               dimnames = list(NULL, c("method","rtol","atol",
@@ -22,9 +22,9 @@ res.df$atol   <- atol
 
 #######  SIMULATIONS - generation of databases
 
-Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
+SimcypR::Initialise(species = SpeciesID$Human, verbose = FALSE)
 
-path_user <- Simcyp::ScriptLocation()
+path_user <- SimcypR::ScriptLocation()
 setwd(path_user)
 
 SetWorkspace("minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
@@ -34,7 +34,7 @@ db_file  <- array( dim = Tot_iter )
 for( iter in 1 : Tot_iter ){
    db_file[iter] <- paste0("sim_",sprintf("%004d",iter),".db")
 
-   Simcyp::SetSolver( solv[iter],
+   SimcypR::SetSolver( solv[iter],
                       rtol = rtol[iter], atol = atol[iter], maxsteps = 1e+07 )
 
    Simulate( database = db_file[iter] )
@@ -48,7 +48,7 @@ for( iter in 1 : Tot_iter ){
    conn <- RSQLite::dbConnect( SQLite(), db_file[iter] )
 
    # SIMULATION DURATIONS
-   PopResults    <- dbGetQuery( conn, "SELECT * FROM PopResults10" )
+   PopResults    <- dbGetQuery( conn, "SELECT * FROM PopResults9" )
    sim_duration  <- PopResults$SimulationDuration
 
    res.df$mean_time[iter] <- mean( sim_duration )
@@ -57,7 +57,7 @@ for( iter in 1 : Tot_iter ){
    # NO. OF SUBJECTS WITH A NEGATIVE CONC
    negC <- vector()
    for(k in 1:100){
-      Csys <- GetProfile_DB(ProfileID$Csys, compound = CompoundID$Substrate, individual = k, conn, inhibition = FALSE)
+      Csys <- GetProfile_DB(ProfileID$Csys, Compound = CompoundID$Substrate, individual = k, conn, Inhibition = FALSE)
       negC[k] <- as.numeric( 0 < sum( ( Csys < 0) ) ) # there is a neg conc or not
    }
 
@@ -69,5 +69,5 @@ for( iter in 1 : Tot_iter ){
 res.df
 
 
-Simcyp::Uninitialise()
+SimcypR::Uninitialise()
 
