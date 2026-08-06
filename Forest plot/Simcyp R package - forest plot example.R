@@ -10,7 +10,6 @@
 library(Simcyp)
 library(RSQLite)
 library(tidyverse)
-library(PKNCA)
 library(tictoc)
 
 # Note: You will need to have the Simcyp Simulator open to simulate. I'm using
