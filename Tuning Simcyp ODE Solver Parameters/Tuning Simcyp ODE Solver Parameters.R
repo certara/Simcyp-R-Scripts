@@ -22,7 +22,7 @@ res.df$atol   <- atol
 
 #######  SIMULATIONS - generation of databases
 
-SimcypR::Initialise(species = SpeciesID$Human, verbose = FALSE)
+SimcypR::InitialiseHuman(verbose = FALSE)
 
 path_user <- SimcypR::ScriptLocation()
 setwd(path_user)
