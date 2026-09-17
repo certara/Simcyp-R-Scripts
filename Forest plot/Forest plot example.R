@@ -1,5 +1,5 @@
-# Simcyp R package - forest plot example
-
+# SimcypR package - forest plot example
+#
 # This script will show you:
 # 1. How to run the Simcyp Simulator from R
 # 2. How to extract the necessary data for forest plots
@@ -7,16 +7,17 @@
 
 
 # Housekeeping ----------------------------------------------------------------
-library(Simcyp)
+library(SimcypR)
 library(RSQLite)
 library(tidyverse)
 library(tictoc)
 
-# Note: You will need to have the Simcyp Simulator open to simulate. I'm using
-# version 25 here.
+# The licensed Simcyp Simulator must be installed for the requested major
+# version (V26 here). You do not need the Simulator GUI open.
 
 # Setting up working directory
-path_user <- Simcyp::ScriptLocation()
+path_user <- SimcypR::ScriptLocation()
+if (!nzchar(path_user)) path_user <- getwd()
 
 
 # Simulating ------------------------------------------------------------------
@@ -24,11 +25,10 @@ path_user <- Simcyp::ScriptLocation()
 setwd(path_user)
 
 # Initialize the Simulator. Even if you're not simulating, you'll need to do
-# this to use the Simcyp package. We're based in the UK, so, USA folks, please
+# this to use the SimcypR package. We're based in the UK, so, USA folks, please
 # note the spelling here! :)
-Simcyp::Initialise(filePath = "C:/Program Files/Simcyp Simulator V25/Screens/SystemFiles",
-                   requestedVersion = 25,
-                   species = SpeciesID$Human)
+try(SimcypR::Uninitialise(), silent = TRUE)
+SimcypR::InitialiseHuman(requestedVersion = 26, verbose = FALSE)
 
 # If you've already run this script in the past -- maybe you're only interested
 # in tweaking the appearance of your forest plot, for example -- then you don't
@@ -43,7 +43,7 @@ if(file.exists("SV-Atazanavir Forest Data.RData")){
    # need the AUC and Cmax ratios for the forest plot.
 
    # Get workspace names
-   SimcypWksz <- list.files(pattern = "wksz")
+   SimcypWksz <- list.files(pattern = "\\.wksz$")
 
    # Creating lists to store data
    ForestData <- list()
@@ -53,26 +53,33 @@ if(file.exists("SV-Atazanavir Forest Data.RData")){
 
       tic(msg = paste("Simulation", Wks))
 
-      # Setting what workspace to simulate
-      SetWorkspace(Wks)
-      # This will give you useful summary information on your simulation. Check
-      # that you're simulating what you think you're simulating! :)
+      # Setting what workspace to simulate. Stop if load fails.
+      ok <- SimcypR::SetWorkspace(Wks)
+      if (!isTRUE(ok)) {
+         stop("SetWorkspace failed for ", Wks,
+              " — check the path and that the workspace major version matches V26.")
+      }
 
       # Run the simulation and save to database. For saving our database files,
       # we'll use the same file name as the workspace but with the ".db" extension.
-      DBfilename <- sub("wksz", "db", Wks)
-      Simulate(database = DBfilename)
+      DBfilename <- sub("\\.wksz$", ".db", Wks)
+      SimcypR::Simulate(database = DBfilename)
 
-      # Make a connection with the database file using RSQLite
-      conn <- RSQLite::dbConnect(SQLite(), DBfilename)
+      # Make a connection with the database file using RSQLite.
+      conn <- RSQLite::dbConnect(RSQLite::SQLite(), DBfilename)
+      # Makes sure the database is fully written before extraction.
+      try(RSQLite::dbExecute(conn, "PRAGMA wal_checkpoint(TRUNCATE);"),
+          silent = TRUE)
 
-      # Extract the population statistics of the predicted AUC and Cmax ratios
-      ForestData[[Wks]] <- GetForestData_DB(Alpha = 0.1,
-                                            Upper = 95,
-                                            Lower = 5,
-                                            conn,
-                                            Last_Dose = TRUE,
-                                            AUC_Type = "AUCt")
+      ForestData[[Wks]] <- SimcypR::GetForestData_DB(
+         Alpha = 0.1,
+         Upper = 95,
+         Lower = 5,
+         conn = conn,
+         Last_Dose = TRUE,
+         AUC_Type = "AUCt",
+         Tag = ProfileID$CsysFull
+      )
 
       SimTime[[Wks]] <- toc(log = TRUE)
 
@@ -123,15 +130,18 @@ glimpse(ForestData)
 # What if you don't have all the observed data? That's fine. Skip whatever you
 # don't have and that simulation just won't have any observed data points.
 
-ObsRatios <- data.frame(File = c("Neely_raltegravirDDI",
-                                 "Zhu_2010_raltegravirDDI",
-                                 "Krishna_raltegravirDDI",
-                                 "Iwamoto_2008_raltegravirDDI",
-                                 "Mummaneni_Clarith_ATZ_DDI"),
-                        PKparameter = c(rep("AUCt_ratio", 5),
-                                        rep("Cmax_ratio", 5)),
-                        GeoMean = c(1.72, 1.54, 1.67, 1.72, 1.94, # AUC ratios
-                                    1.37, 1.39, 1.16, 1.53, 1.50)) # Cmax ratios
+ObsRatios <- data.frame(
+  File = rep(c("Neely_raltegravirDDI",
+               "Zhu_2010_raltegravirDDI",
+               "Krishna_raltegravirDDI",
+               "Iwamoto_2008_raltegravirDDI",
+               "Mummaneni_Clarith_ATZ_DDI"),
+             times = 2),
+  PKparameter = c(rep("AUCt_ratio", 5),
+                  rep("Cmax_ratio", 5)),
+  GeoMean = c(1.72, 1.54, 1.67, 1.72, 1.94, # AUC ratios
+              1.37, 1.39, 1.16, 1.53, 1.50)  # Cmax ratios
+)
 
 
 # Making the forest plot -------------------------------------------------------
@@ -140,8 +150,8 @@ ObsRatios <- data.frame(File = c("Neely_raltegravirDDI",
 ?PlotForestDDI
 
 # Let's make draft forest plot with mostly default parameters.
-PlotForestDDI(SimForestData = ForestData,
-              ObsForestData = ObsRatios)
+SimcypR::PlotForestDDI(SimForestData = ForestData,
+                       ObsForestData = ObsRatios)
 
 # As you can see, the y axis is labeled according to the simulation, which does
 # not make for the prettiest of graph labels. We can make nicer labels either by
@@ -156,47 +166,46 @@ YAxisLabels<- c("Neely_raltegravirDDI" = "Raltegravir\nNeely et al. (2010)",
                 "Mummaneni_Clarith_ATZ_DDI" = "Clarithromycin\nMummaneni et al. (2002)")
 
 # And the revised forest plot with the nicer labels:
-PlotForestDDI(SimForestData = ForestData,
-              ObsForestData = ObsRatios,
-              y_axis_column = YAxisLabels)
+SimcypR::PlotForestDDI(SimForestData = ForestData,
+                       ObsForestData = ObsRatios,
+                       y_axis_column = YAxisLabels)
 
 # There are a number of ways that you can customize your forest plot, and we
 # hope you'll play around with the function a bit with assistance from the help
 # file. Here are a few more options for an example.
 
-PlotForestDDI(SimForestData = ForestData,
-              ObsForestData = ObsRatios,
-              y_axis_column = YAxisLabels,
-              Mean_type = "Geometric",
-              Variability_type = "CI",
+SimcypR::PlotForestDDI(SimForestData = ForestData,
+                       ObsForestData = ObsRatios,
+                       y_axis_column = YAxisLabels,
+                       Mean_type = "Geometric",
+                       Variability_type = "CI",
 
-              # You can change the set of colors to one of the sets already
-              # included (see the help file) or specify your own colors. We'll
-              # use one of the built-in sets.
-              color_set = "yellow to red",
+                       # You can change the set of colors to one of the sets already
+                       # included (see the help file) or specify your own colors. We'll
+                       # use one of the built-in sets.
+                       color_set = "yellow to red",
 
-              # By default, the PlotForestDDI function orders the simulations
-              # from strongest inhibition at the top to strongest induction at
-              # the bottom, but you can specify that you want the order to be as
-              # it is in the source data.frame instead.
-              y_order = "as is",
+                       # By default, the PlotForestDDI function orders the simulations
+                       # from strongest inhibition at the top to strongest induction at
+                       # the bottom, but you can specify that you want the order to be as
+                       # it is in the source data.frame instead.
+                       y_order = "as is",
 
-              x_axis_title = "Geometric Mean Ratio (90% CI)",
-              x_axis_limits = c(1, 2),
-              graph_title = "Predicted Geometric Mean AUC and Cmax Ratios for DDI studies",
-              graph_title_size = 14 ,
-              legend_position = "right",
+                       x_axis_title = "Geometric Mean Ratio (90% CI)",
+                       x_axis_limits = c(1, 2),
+                       graph_title = "Predicted Geometric Mean AUC and Cmax Ratios for DDI studies",
+                       graph_title_size = 14 ,
+                       legend_position = "right",
 
-              # We recommend playing around with the output graph dimensions to
-              # make sure things are clear and not smooshed together.
-              fig_height = 7,
-              fig_width = 8,
-              save_graph = "Forest plot SV-Atazanavir.png")
+                       # We recommend playing around with the output graph dimensions to
+                       # make sure things are clear and not smooshed together.
+                       fig_height = 7,
+                       fig_width = 8,
+                       save_graph = "Forest plot SV-Atazanavir.png")
 
 
 # Finishing up -----------------------------------------------------------------
 
-Uninitialise()   # Uninitialise the Simcyp engine
-
+SimcypR::Uninitialise()   # Uninitialise the Simcyp engine
 
 
