@@ -1,4 +1,4 @@
-# Tuning Simcyp ODE Solver Parameters with Simcyp-R
+# Tuning Simcyp ODE Solver Parameters with SimcypR
 
 ## This script shows
 
