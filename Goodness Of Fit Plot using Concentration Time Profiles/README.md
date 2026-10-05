@@ -1,15 +1,14 @@
-# Goodness Of Fit Plot using Concentration Time Profiles
+# Goodness Of Fit Plot using Concentration-Time Profiles
 
-A graph of the predicted vs observed concentration time (CT) profile data is generated in this example script.  
-
+A graph of the predicted vs observed concentration-time (CT) profile data is generated in this example script.
 
 ## This script shows
 
 1.  How to run the Simcyp™ Simulator from R i.e. Setting up a Simcyp™ R script.
 
-2.  How to run a Simcyp™ simulation and extract the predicted concentration time profile in R.
+2.  How to run a Simcyp™ simulation and extract the predicted and observed concentration-time profiles in R.
 
-3.  How to plot a graph of the predicted vs observed concentration time profile along with the line of identity, 1.25 fold and 2 fold deviation area.
+3.  How to plot a graph of the predicted vs observed concentration-time profile along with the line of identity, 1.25-fold and 2-fold deviation lines.
 
 ## How to run this example
 

@@ -6,9 +6,9 @@ A graph of the predicted vs observed AUC and Cmax ratios data is generated in th
 
 1.  How to run the Simcyp™ Simulator from R i.e. Setting up a Simcyp™ R script.
 
-2.  How to run a Simcyp™ simulation and extract the summary statistics of the predicted AUC and Cmax ratio of in R.
+2.  How to run a Simcyp™ simulation and extract the summary statistics of the predicted AUC and Cmax ratio in R.
 
-3.  How to plot a graph of the predicted vs observed PK ratio along with the line of identity, 1.25 fold deviation area, 2 fold deviation area and guest criteria area.
+3.  How to plot a graph of the predicted vs observed PK ratio along with the line of identity, 1.25-fold deviation lines, 2-fold deviation lines and Guest criteria lines.
 
 ## How to run this example
 
