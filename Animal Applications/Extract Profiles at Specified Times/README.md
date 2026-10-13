@@ -26,5 +26,4 @@ This example uses the **SimcypR** package with the **V26 Animal** engine. It loa
 ## Notes
 
 - On V26, use `InitialiseAnimal(requestedVersion = 26)`. Do not pass `SpeciesID$Monkey` (or other species) into `Initialise()` — the workspace sets the animal species.
-- `GetProfileAtSpecifiedTimes_DB` returns a **numeric vector** of concentrations (nearest simulated time if an exact time is missing). It does not return `list(x, y)`.
-- `GetProfile_DB` has **no** `Overlay` argument. Overlay of another simulated profile is on `PlotProfile_DB(..., Overlay = previous_plot)`. Observed-style points can use `PlotProfile_DB(..., Obs = ...)`, or ggplot2 as in this script.
+- `GetProfileAtSpecifiedTimes_DB` returns a **numeric vector** of concentrations (nearest simulated time if an exact time is missing).
