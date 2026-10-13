@@ -9,7 +9,7 @@ This example uses the **SimcypR** package with the **V26 Animal** engine. It sta
 3. How to switch species with `LoadPopulation` and `AnimalPopulationFile$*`.
 4. How to **save** each modified species workspace with `SaveWorkspace(..., logChanges = TRUE)` (writes `.wksz` + modification-log CSV in the script folder).
 5. How to overlay species profiles with `PlotProfile_DB(..., Overlay = …)` and a different colour per species.
-6. How to reuse the existing `Dog.db`, reload the three saved workspaces, re-simulate those species, and overlay again — same result as the in-memory path (both overlay plots printed for comparison).
+6. How to reuse the existing `Dog.db`, reload the three saved workspaces, re-simulate those species, and overlay again — both overlay plots printed for comparison.
 
 ## Files
 
@@ -43,4 +43,4 @@ This example uses the **SimcypR** package with the **V26 Animal** engine. It sta
   - Mouse — `AnimalPopulationFile$Sim_Mouse`
   - Rat — `AnimalPopulationFile$Sim_Rat`
 - `SaveWorkspace` path must differ from the currently loaded workspace path.
-- The two overlay plots should look the same: saving then reloading the workspaces preserves the species change. (`PlotProfile_DB` is ggplot-based, so `par(mfrow)` cannot arrange the two plots in one device.)
+- The two overlay plots should look the same: saving then reloading the workspaces preserves the species change. 
