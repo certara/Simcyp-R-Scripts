@@ -9,7 +9,7 @@ the `Large molecule GSA_V25.wksz` workspace. and writes the simulation results a
 The second file `Run GSA.R` reads in saved data and produces results from the various uncertainty and sensitivity analysis routines. 
 As all the simulations have already been run and stored in the folders of this directory,  this script can be run independently, calling these saved simulations.
 
-## These scripts shows
+## These scripts show
 
 1. How to load a workspace, run a simulation, and open the `.db`. 
 2. How to check that parameters are being successfully overwritten using `SetParameter` and `GetParameter`.
