@@ -1,0 +1,6 @@
+Lower,Upper,Scale
+0.05,50,Linear
+0.05,10,Log
+0.2,40,Log
+0.55,2,Linear
+0.45,0.55,Linear
