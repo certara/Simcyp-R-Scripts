@@ -313,8 +313,8 @@ write.csv(Intracellular_Kid, 'Morris/Intracellular_Kid_Morris.csv')
 write.csv(Time, 'Morris/Time.csv')
 
 
-## Moving to simulations for variance based analysis (Sobol method). We store again the entire profiles. 
-## The process is identical to running simulations, differing only in the design points we loop thorough
+## Moving to simulations for variance based analysis (Sobol method). We store the entire profiles and then post process. 
+## The process is identical to running the earlier simulations, differing only in the design points we loop thorough
 
 ## Design point 1
 ## Overwrite default parameters. In this loop we overwrite each of the five parameters using the first line of the design.
@@ -432,16 +432,89 @@ for(i in 2:points){
 }
 
 ## Entire set of simulations for Sobol variance-based analysis is complete and stored in four dataframes.
+## Dataframes could be output and worked with directly but the files are too large for a practical example.
+## The code below processes model output and extracts AUC, Cmax and Tmax for each summary measure.
+
+#Initialize empty vectors for results
+AUC = c()
+Cmax = c()
+Tmax = c()
+
+for(i in 1:points)
+{
+  run = Vascular_Kid[,i]
+  AUC = c(AUC, flux::auc(Time, run))
+  Cmax = c(Cmax, max(run))
+  Tmax = c(Tmax, Time[which.max(run)])
+}
+
+Results_Vascular = data.frame(AUC, Cmax, Tmax)
+
+#Initialize empty vectors for results
+AUC = c()
+Cmax = c()
+Tmax = c()
+
+for(i in 1:points)
+{
+  run = Endothelial_Kid[,i]
+  AUC = c(AUC, flux::auc(Time, run))
+  Cmax = c(Cmax, max(run))
+  Tmax = c(Tmax, Time[which.max(run)])
+}
+
+Results_Endothelial = data.frame(AUC, Cmax, Tmax)
+
+
+#Initialize empty vectors for results
+AUC = c()
+Cmax = c()
+Tmax = c()
+
+## We consider just Sobol indices applied to profiles_Interstitial here, but the other outputs are trivial adaptions.
+## We loop through and pull out AUC using the flux package and calculate a Cmax and Tmax for each point using simple calculations.
+## We append each new point to our existing vector of results.
+for(i in 1:points)
+{
+  run = Interstitial_Kid[,i]
+  AUC = c(AUC, flux::auc(Time, run))
+  Cmax = c(Cmax, max(run))
+  Tmax = c(Tmax, Time[which.max(run)])
+}
+
+Results_Interstitial = data.frame(AUC, Cmax,Tmax)
+
+
+#Initialize empty vectors for results
+AUC = c()
+Cmax = c()
+Tmax = c()
+
+for(i in 1:points)
+{
+  run = Intracellular_Kid[,i]
+  AUC = c(AUC, flux::auc(Time, run))
+  Cmax = c(Cmax, max(run))
+  Tmax = c(Tmax, Time[which.max(run)])
+}
+
+Results_Intracellular = data.frame(AUC, Cmax,Tmax)
+
+
+
 ## The design and outputs are all written. The output files are ready for an analysis that may be repeated.
-## These write statements assume that the folder Morris already exists in this directory.
+## These write statements assume that the folder Sobol already exists in this directory.
 
 
 write.csv(SobolDesignUnit, 'Sobol/SobolDesignUnit.csv')
 write.csv(SobolDesignModel, 'Sobol/SobolDesignModel.csv')
-write.csv(Vascular_Kid, 'Sobol/Vascular_Kid_Sobol.csv')
-write.csv(Endothelial_Kid, 'Sobol/Endothelial_Kid_Sobol.csv')
-write.csv(Interstitial_Kid, 'Sobol/Interstitial_Kid_Sobol.csv')
-write.csv(Intracellular_Kid, 'Sobol/Intracellular_Kid_Sobol.csv')
+
+write.csv(Results_Interstitial, 'Sobol/Results_Interstitial.csv')
+write.csv(Results_Intracellular, 'Sobol/Results_Intracellular.csv')
+write.csv(Results_Vascular, 'Sobol/Results_Vascular.csv')
+write.csv(Results_Endothelial, 'Sobol/Results_Endothelial.csv')
+
+
 write.csv(Time, 'Sobol/Time.csv')
 
 #We additionally store the matrices that were used as input for building the Sobol design.
@@ -450,6 +523,8 @@ SobolD_X2 = Sobol_object$X2
 
 write.csv(SobolD_X1, 'Sobol/SobolD_X1.csv')
 write.csv(SobolD_X2, 'Sobol/SobolD_X2.csv')
+
+
 
 
 

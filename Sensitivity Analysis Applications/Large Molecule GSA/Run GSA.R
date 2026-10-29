@@ -8,8 +8,7 @@
 #####################################################################################################################################
 
 ## 1. Initialization
-## Here we read in the R packages for analysis and read in the Simcyp workspace to be studied in GSA. 
-## We run an initial simulation to check that we can run a simulation, write a database, and make changes to model parameters.
+## Here we read in the R packages for analysis
 
 ## Clear memory and remove all objects: 
 rm(list=ls())
@@ -32,7 +31,7 @@ library("flux")
 ## We move on to processing the simulations from Morris Test and Sobol to extract summary measures to feed into these routines.
 
 ## Set script to source file location
-path_user = Simcyp::ScriptLocation()
+path_user = SimcypR::ScriptLocation()
 setwd(path_user)
 
 ## Here we assume all results have been organised into sub directories.
@@ -215,7 +214,7 @@ print(MorrisObject)
 plot(MorrisObject)
 title(main='Tmax')
 
-## The basic plotting is a little basic. In the below we redefine our original design dataframe and append the Morris test results.
+## The initial plotting is a little basic. In the below we redefine our original design dataframe and append the Morris test results.
 ## In this dataframe format we can easily use the features of ggplot and add parameter labels.
 
 names = c("fu", 
@@ -282,52 +281,26 @@ multiplot(Morris_AUC, Morris_Cmax, Morris_Tmax, cols=1)
 
 
 ## We finish the script with the Sobol results
-## The results have been written in a rectangular format as before and require a little pre-processing before results are extracted.
-## The columns of the data correspond to the data from each run.  Each row contains the data from all runs of the model at a given time point.
-## Processing is similar to that required for the Morris Test
+## The results have been already been post-processed and need reading in.
+## We assume that results are in the sub directory Sobol
 
-## Here we assume all results have been organised into sub directories.
-## Output files are read in from the sub directory 'Space Filling'
-profiles_Vascular = read.csv('Sobol/Vascular_Kid_Sobol.csv')
-profiles_Endothelial = read.csv('Sobol/Endothelial_Kid_Sobol.csv')
-profiles_Interstitial = read.csv('Sobol/Interstitial_Kid_Sobol.csv')
-profiles_Intracellular = read.csv('Sobol/Intracellular_Kid_Sobol.csv')
 
 Time = read.csv('Sobol/Time.csv')
-points = dim(profiles_Vascular)[2] - 1
-
-##The saved files include a leading column of labels, that we remove before analysis.
 Time = Time[,2]
-profiles_Vascular = profiles_Vascular[,2:(points+1)]
-profiles_Endothelial = profiles_Endothelial[,2:(points+1)]
-profiles_Interstitial = profiles_Interstitial[,2:(points+1)]
-profiles_Intracellular = profiles_Intracellular[,2:(points+1)]
 
-## Now we loop through each column of output, and extract PK summary measures of interest
-## Here we use Cmax, Tmax and AUC but there is flexibility to customize as required here
-
-#Initialize empty vectors for results
-AUC = c()
-Cmax = c()
-Tmax = c()
-
-## We consider just Sobol indices applied to profiles_Interstitial here, but the other outputs are trivial adaptions.
-## We loop through and pull out AUC using the flux package and calculate a Cmax and Tmax for each point using simple calculations.
-## We append each new point to our existing vector of results.
-for(i in 1:points)
-{
-  run = profiles_Interstitial[,i]
-  AUC = c(AUC, flux::auc(Time, run))
-  Cmax = c(Cmax, max(run))
-  Tmax = c(Tmax, Time[which.max(run)])
-}
+Results_Vascular = read.csv('Sobol/Results_Vascular.csv')
+Results_Endothelial = read.csv('Sobol/Results_Endothelial.csv')
+Results_Interstitial = read.csv('Sobol/Results_Interstitial.csv')
+Results_Intracellular = read.csv('Sobol/Results_Intracellular.csv')
 
 ## We now create a Sobol test object so that we can compute indices.
 ## We use the exact same options as we used to originally crate the design. 
-## We will need to overwrite the design to ensure it corresponds exactly to our model output.
+## We require the exact same Sobol design that corresponds to results.
+## We generate a Sobol object, and overwrite the design using the design we saved in the Run simulations script. 
+## This step would not be required if we were running in the same R session and the object was saved.
 
 ## The design on the unit hypercube is read in here
-## We also read in and replace the values of X1 and x2 that have already been written.
+## We also read in and replace the values of X1 and X2 that have already been written.
 SobolDesignUnit = read.csv('Sobol/SobolDesignUnit.csv')
 SobolDX1 = read.csv('Sobol/SobolD_X1.csv')
 SobolDX2 = read.csv('Sobol/SobolD_X2.csv')
@@ -348,6 +321,8 @@ SobolDX1 = unname(SobolDX1)
 SobolDX2 = as.matrix(SobolDX2)
 SobolDX2 = unname(SobolDX2)
 
+##We now have all the elements of the design we used and can overwrite the Sobol object.
+
 ## Here we specify a Sobol object with the same options as before, and we overwrite X1, X2 and X before supplying results 
 m = 1000
 X1 <- data.frame(matrix(runif(n.param * m), nrow = m))
@@ -356,31 +331,149 @@ X2 <- data.frame(matrix(runif(n.param * m), nrow = m))
 ## Create Sobol object
 Sobol_object = sensitivity::sobolSalt(model = NULL, X1, X2, scheme="A", nboot = 10)
 
-## Overwrite the design of the Morris test object
+## Overwrite the design of the Sobol object
 Sobol_object$X1 = SobolDX1
 Sobol_object$X2 = SobolDX2
 Sobol_object$X = SobolDesignUnit
 
+
 ## We now loop through here and compute results
 ## Pass each column of summary data using the tell command. We display the full table of results in each case.
-## We also extract the main effect ,total effect and variance components of results.
+## We also extract the main effect and total effect components of results.
 ## As bootstrapping has been used to derive CI's the main and total effects results are dataframes.
-tell(Sobol_object,AUC)
-print(Sobol_object)
-Sobol_object$S
-Sobol_object$T
-Sobol_object$V
 
-tell(Sobol_object,Cmax)
-print(Sobol_object)
-Sobol_object$S
-Sobol_object$T
-Sobol_object$V
+##We write a script here for plotting main effects against total effects with a CI for indices shown in each dimension.
+##Only results for the Endothelial concentrations are given below, but the other compartments require trivial editing.
 
-tell(Sobol_object,Tmax)
-print(Sobol_object)
-Sobol_object$S
-Sobol_object$T
-Sobol_object$V
 
+##In the code below the basic results use tell() and the main and total effects dataframes may be extracted.
+##The script below is a little more elaborate and formats the results for a plot of main and total effects (with CI) 
+##Only the non zero parameters are explicitly plotted in the code below.
+
+library(ggplot2)
+library(dplyr)
+library(tibble)
+
+prep <- function(df, prefix) {
+  df |>
+    rownames_to_column("param") |>
+    transmute(param,
+              "{prefix}"        := original,
+              "{prefix}min"     := `min. c.i.`,
+              "{prefix}max"     := `max. c.i.`)
+}
+
+#Pass AUC for Endothelial
+tell(Sobol_object,Results_Endothelial$AUC)
+print(Sobol_object)
+S = Sobol_object$S
+T = Sobol_object$T
+
+id    = c("idFu1", 
+          "BioKupAdipose",
+          "BioKreAdipose",
+          "OligosNucleaseClearance",
+          "RiscComplexBindingKd")
+
+plot_df <- inner_join(prep(S, "x"), prep(T, "y"), by = "param")
+plot_df$param = id
+
+thr <- 0.05   # points with both effects below this are treated as the "near-zero" cluster
+plot_df$cluster <- plot_df$x < thr & plot_df$y < thr
+
+cluster_lab <- paste(plot_df$param[plot_df$cluster], collapse = "\n")
+
+AUC_plot <- ggplot(plot_df, aes(x = x, y = y)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0, colour = "grey40", alpha = 0.6) +
+  geom_errorbar(aes(xmin = xmin, xmax = xmax), width = 0, colour = "grey40", alpha = 0.6,
+                orientation = "y") +
+  geom_point(size = 2.5, colour = "#119DD9", alpha = 0.8) +
+  # individual labels for the distinct points
+  geom_text_repel(data = subset(plot_df, !cluster), aes(label = param),
+                  size = 3, nudge_y = 0.05, min.segment.length = 0) +
+  # one combined label for the near-zero cluster, offset to open space
+  annotate("label", x = 0.2, y = 0.01, label = cluster_lab, size = 2.5,
+           hjust = 0, fill = "white") +
+  annotate("segment", x = 0.2, y = 0.01, xend = 0.01, yend = 0.01,
+           colour = "grey40", linewidth = 0.4,
+           arrow = arrow(length = unit(1.5, "mm"))) +
+  #coord_equal() +
+  labs(x = "Main effect", y = "Total effect", , title = "AUC") +
+  scale_x_continuous(limits=c(-0.05,1)) +
+  scale_y_continuous(limits=c(-0.05,1)) +
+  theme_classic(base_size = 10)
+
+#Pass Cmax for Endothelial
+tell(Sobol_object,Results_Endothelial$Cmax)
+print(Sobol_object)
+S = Sobol_object$S
+T = Sobol_object$T
+
+plot_df <- inner_join(prep(S, "x"), prep(T, "y"), by = "param")
+plot_df$param = id
+
+thr <- 0.05   # points with both effects below this are treated as the "near-zero" cluster
+plot_df$cluster <- plot_df$x < thr & plot_df$y < thr
+
+cluster_lab <- paste(plot_df$param[plot_df$cluster], collapse = "\n")
+
+Cmax_plot <- ggplot(plot_df, aes(x = x, y = y)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0, colour = "grey40", alpha = 0.6) +
+  geom_errorbar(aes(xmin = xmin, xmax = xmax), width = 0, colour = "grey40", alpha = 0.6,
+                orientation = "y") +
+  geom_point(size = 2.5, colour = "#119DD9", alpha = 0.8) +
+  # individual labels for the distinct points
+  geom_text_repel(data = subset(plot_df, !cluster), aes(label = param),
+                  size = 3, nudge_y = 0.05, min.segment.length = 0) +
+  # one combined label for the near-zero cluster, offset to open space
+  annotate("label", x = 0.2, y = 0.01, label = cluster_lab, size = 2.5,
+           hjust = 0, fill = "white") +
+  annotate("segment", x = 0.2, y = 0.01, xend = 0.01, yend = 0.01,
+           colour = "grey40", linewidth = 0.4,
+           arrow = arrow(length = unit(1.5, "mm"))) +
+  #coord_equal() +
+  labs(x = "Main effect", y = "Total effect", title = "Cmax") +
+  scale_x_continuous(limits=c(-0.05,1)) +
+  scale_y_continuous(limits=c(-0.05,1)) +
+  theme_classic(base_size = 10)
+
+#Pass Tmax for Endothelial
+tell(Sobol_object,Results_Endothelial$Tmax)
+print(Sobol_object)
+S = Sobol_object$S
+T = Sobol_object$T
+
+plot_df <- inner_join(prep(S, "x"), prep(T, "y"), by = "param")
+plot_df$param = id
+
+thr <- 0.05   # points with both effects below this are treated as the "near-zero" cluster
+plot_df$cluster <- plot_df$x < thr & plot_df$y < thr
+
+cluster_lab <- paste(plot_df$param[plot_df$cluster], collapse = "\n")
+
+Tmax_plot <- ggplot(plot_df, aes(x = x, y = y)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0, colour = "grey40", alpha = 0.6) +
+  geom_errorbar(aes(xmin = xmin, xmax = xmax), width = 0, colour = "grey40", alpha = 0.6,
+                orientation = "y") +
+  geom_point(size = 2.5, colour = "#119DD9", alpha = 0.8) +
+  # individual labels for the distinct points
+  geom_text_repel(data = subset(plot_df, !cluster), aes(label = param),
+                  size = 3, nudge_y = 0.05, min.segment.length = 0) +
+  # one combined label for the near-zero cluster, offset to open space
+  annotate("label", x = 0.2, y = 0.01, label = cluster_lab, size = 2.5,
+           hjust = 0, fill = "white") +
+  annotate("segment", x = 0.2, y = 0.01, xend = 0.01, yend = 0.01,
+           colour = "grey40", linewidth = 0.4,
+           arrow = arrow(length = unit(1.5, "mm"))) +
+  #coord_equal() +
+  scale_x_continuous(limits=c(-0.05,1)) +
+  scale_y_continuous(limits=c(-0.05,1)) +
+  labs(x = "Main effect", y = "Total effect", title = "Tmax") +
+  theme_classic(base_size = 10)
+
+
+multiplot(AUC_plot, Cmax_plot, Tmax_plot, cols=2)
 
