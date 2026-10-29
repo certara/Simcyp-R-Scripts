@@ -1,160 +1,196 @@
-############################################################################################
-# AO:20/01/2026                                                                            #
-#                                Simcyp Power Calculation                                  #
-############################################################################################
+# SimcypR package - power calculation (DDI) example
+#
+# This script will show you:
+# 1. How to run a Simcyp simulation and store results to a database
+# 2. How to extract substrate AUC with and without interaction
+# 3. How to run a power analysis across sample sizes
 
 
-rm(list=ls())
-library("Simcyp")
-library("RSQLite")
-library("tidyverse")
+# Housekeeping ----------------------------------------------------------------
+rm(list = ls())
+library(SimcypR)
+library(RSQLite)
+library(tidyverse)
 
+# The licensed Simcyp Simulator must be installed for the requested major
+# version (V26 here). You do not need the Simulator GUI open.
 
-# Set script to source file location
-path_user <- dirname(rstudioapi::getActiveDocumentContext()$path)
+# Setting up working directory
+path_user <- SimcypR::ScriptLocation()
+if (!nzchar(path_user)) path_user <- getwd()
 setwd(path_user)
 
 
-#2. Initialise Simcyp
+# Initialise ------------------------------------------------------------------
 
-#Intialise the system files path
-Simcyp::Initialise(species = SpeciesID$Human, verbose = FALSE)
-
-
-
-SetWorkspace("Lorezapam+Probenecid.wksz") #Enter name of workspace
-
-Simulate(database= "Lorezapam+Probenecid.db")
-
-conn<- RSQLite::dbConnect(SQLite(), "Lorezapam+Probenecid.db")
-
-nPop<-GetParameter(SimulationParameterID$Pop,CategoryID$SimulationData, CompoundID$Substrate) # total population size
-nPop1<-GetParameter(SimulationParameterID$Poppercent1,CategoryID$SimulationData, CompoundID$Substrate) # 1st pop size
-nPop2<-GetParameter(SimulationParameterID$Poppercent2,CategoryID$SimulationData, CompoundID$Substrate) # 2nd pop size
-nPop3<-GetParameter(SimulationParameterID$Poppercent3,CategoryID$SimulationData, CompoundID$Substrate) # 3rd pop size
-
-# AUC Extraction from simulated DDI study (Lorezapam+Probenecid) ------------------------------------
-
-  # Substrate AUC-----------
-
-  AUC_SubDeets<- GetAUCFrom_DB(ProfileID$CsysFull ,CompoundID$Substrate,individual = c(1:nPop),conn, allDoses = TRUE)
-  # Sort the AUC_SubDeets dataframe by Individual
-  AUC_SubDeets <- AUC_SubDeets[order(AUC_SubDeets$Individual),]
-
-  # Inhibtion =0 i.e substrate pk WITHOUT the presence of inhibitor
-  AUCSubPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==0) %>% pull(AUC)    #OVERALL
-
-  # Inhibtion =1 i.e substrate pk WITH the presence of inhibitor
-  AUCSubDDIPop<- AUC_SubDeets %>% filter(Dose==-1, Inhibition==1) %>% pull(AUC)  #OVERALL
+# Initialise the Simulator. Even if you are not simulating, you need to do this
+# to use SimcypR.
+try(SimcypR::Uninitialise(), silent = TRUE)
+SimcypR::InitialiseHuman(requestedVersion = 26, verbose = FALSE)
 
 
-# Option to load the pre-saved data file.
+# Simulate --------------------------------------------------------------------
+
+workspace_file <- "Lorezapam+Probenecid.wksz"
+db_file <- "Lorezapam+Probenecid.db"
+
+ok <- SimcypR::SetWorkspace(workspace_file)
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", workspace_file,
+       " — check the path and that the workspace major version matches V26.")
+}
+
+# Skip re-simulation if the database is already in this folder.
+if (file.exists(db_file)) {
+  message("Using existing database: ", db_file)
+} else {
+  SimcypR::Simulate(database = db_file)
+}
+
+# Make a connection with the database file using RSQLite.
+# Makes sure the database is fully written before extraction.
+conn <- RSQLite::dbConnect(RSQLite::SQLite(), db_file)
+try(RSQLite::dbExecute(conn, "PRAGMA wal_checkpoint(TRUNCATE);"),
+    silent = TRUE)
+
+
+# Workspace population settings -----------------------------------------------
+
+n_pop <- SimcypR::GetParameter(
+  Tag = SimulationParameterID$Pop,
+  Category = CategoryID$SimulationData,
+  Compound = CompoundID$Substrate
+)
+n_pop1 <- SimcypR::GetParameter(
+  Tag = SimulationParameterID$Poppercent1,
+  Category = CategoryID$SimulationData,
+  Compound = CompoundID$Substrate
+)
+n_pop2 <- SimcypR::GetParameter(
+  Tag = SimulationParameterID$Poppercent2,
+  Category = CategoryID$SimulationData,
+  Compound = CompoundID$Substrate
+)
+n_pop3 <- SimcypR::GetParameter(
+  Tag = SimulationParameterID$Poppercent3,
+  Category = CategoryID$SimulationData,
+  Compound = CompoundID$Substrate
+)
+
+
+# AUC extraction --------------------------------------------------------------
+
+# Option to load a pre-saved AUC file instead of extracting from the .db:
 # load("MultipopulationAUCData.RData")
 
+pk_sub <- SimcypR::GetPKParameters_DB(
+  Tag = ProfileID$CsysFull,
+  Compound = CompoundID$Substrate,
+  individual = -1,
+  conn = conn,
+  allDoses = TRUE
+)
+pk_sub <- pk_sub[order(pk_sub$Individual), ]
 
-#idAUC=AUC first dose
-#4.Get AUC values for each individual for previously run workspace
-AUC.sub<-AUCSubPop
-AUC.sub.healthy<-AUC.sub[1:1000]
-AUC.sub.renal.36<-AUC.sub[1001:2000]
-AUC.sub.renal.l3<-AUC.sub[2001:3000]
+# Inhibition = 0: substrate PK without inhibitor
+# Inhibition = 1: substrate PK with inhibitor
+# Dose = -1: overall AUC across the simulation
+auc_sub_pop <- pk_sub %>%
+  dplyr::filter(Dose == -1, Inhibition == 0) %>%
+  dplyr::pull(AUC)
 
-AUC.sub.inb<-AUCSubDDIPop
-AUC.sub.inb.healthy<-AUC.sub.inb[1:1000]
-AUC.sub.inb.renal.36<-AUC.sub.inb[1001:2000]
-AUC.sub.inb.renal.l3<-AUC.sub.inb[2001:3000]
+auc_sub_ddi_pop <- pk_sub %>%
+  dplyr::filter(Dose == -1, Inhibition == 1) %>%
+  dplyr::pull(AUC)
 
-#
-# AUC.1<-AUC.sub.renal.l3         #Sub AUC
-# AUC.2<-AUC.sub.inb.renal.l3     #Interaction AUC
-AUC.1<-AUC.sub.healthy        #Sub HV
-AUC.2<-AUC.sub.renal.l3    #Sub RI.l3
-AUC.3<-AUC.sub.renal.36    #Sub RI.l3
-
-#Plot graphs of population values
-plot(density(AUC.1),col=1, lwd=2, main="", xlab="AUC", ylim=c(0, 7), xlim=c(0,0.8))
-lines(density(AUC.2),col=2, lwd=2)
-lines(density(AUC.3),col=3, lwd=2)
-legend("topright",c("AUC Sub HV","AUC Sub RI.l3","AUC Sub RI.36"), col=c(1,2,3), lwd=2, lty=1)#, "AUC Sub RI 36" ,3
+RSQLite::dbDisconnect(conn)
 
 
-#2.Calculate mean and variance of the AUC in both populations.
-# population 1 has a mean m.pop1 and variance v.pop1
-# population 2 has a mean m.pop2 and variance v.pop2
+# Split mixed populations (this workspace: 1000 subjects each) ----------------
 
-m.pop1<-mean(AUC.1)
-m.pop2<-mean(AUC.2)
-m.pop3<-mean(AUC.3)
+auc_sub <- auc_sub_pop
+auc_sub_healthy <- auc_sub[1:1000]
+auc_sub_renal_36 <- auc_sub[1001:2000]
+auc_sub_renal_l3 <- auc_sub[2001:3000]
 
-v.pop1<-var(AUC.1)
-v.pop2<-var(AUC.2)
-v.pop3<-var(AUC.3)
+auc_sub_inh <- auc_sub_ddi_pop
+auc_sub_inh_healthy <- auc_sub_inh[1:1000]
+auc_sub_inh_renal_36 <- auc_sub_inh[1001:2000]
+auc_sub_inh_renal_l3 <- auc_sub_inh[2001:3000]
 
-sd.pop1<-sqrt(v.pop1)
-sd.pop2<-sqrt(v.pop2)
-sd.pop3<-sqrt(v.pop3)
+# DDI comparison (commented):
+# auc_1 <- auc_sub_renal_l3         # substrate AUC
+# auc_2 <- auc_sub_inh_renal_l3     # interaction AUC
+
+# Population comparison used below:
+auc_1 <- auc_sub_healthy     # substrate HV
+auc_2 <- auc_sub_renal_l3    # substrate RI <30
+auc_3 <- auc_sub_renal_36    # substrate RI 30-60
+
+# Density of population AUC values
+plot(density(auc_1), col = 1, lwd = 2, main = "", xlab = "AUC",
+     ylim = c(0, 7), xlim = c(0, 0.8))
+lines(density(auc_2), col = 2, lwd = 2)
+lines(density(auc_3), col = 3, lwd = 2)
+legend("topright",
+       c("AUC Sub HV", "AUC Sub RI.l3", "AUC Sub RI.36"),
+       col = c(1, 2, 3), lwd = 2, lty = 1)
 
 
-#3.Define Sample sizes
-#Here it assumes that sampling equal numbers from both populations
+# Means and variances ---------------------------------------------------------
 
-#Define vector of sample sizes
-#sample<-c(2,3,4,5,10,20,50)
-sample.1<-c(10,20,30,40,50)  # c(2,3,4,5,6) #sample size in population 1
-#sample.2<-c(2,4,6,8,10)# sample size in population 2
-sample.2<-sample.1
+m_pop1 <- mean(auc_1)
+m_pop2 <- mean(auc_2)
+m_pop3 <- mean(auc_3)
+
+v_pop1 <- var(auc_1)
+v_pop2 <- var(auc_2)
+v_pop3 <- var(auc_3)
+
+sd_pop1 <- sqrt(v_pop1)
+sd_pop2 <- sqrt(v_pop2)
+sd_pop3 <- sqrt(v_pop3)
 
 
-# IF m.pop2>m.pop1, USE METHOD 1
-# IF m.pop2<m.pop1, USE METHOD 2
+# Sample sizes (equal n from each population) ---------------------------------
 
+sample_1 <- c(10, 20, 30, 40, 50)
+sample_2 <- sample_1
 
+alpha <- 0.05
+c_value <- matrix(0, 1, length(sample_1))
+power_pk <- matrix(0, 1, length(sample_2))
 
-#METHOD 1: If m.pop2>m.pop1
-#4a. Define critical value(for an alpha of 0.05) of population 1 by sample size
-alpha<-0.05
-c.value<-matrix(0,1,length(sample.1)) #
-
-for (i in 1:length(sample.1)){
-   c.value[1,i]<-qnorm(1-alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
-  # Here we are getting the z (crit) value where we observe 1-aplha probability.
-
+# METHOD 1 if m_pop2 > m_pop1; METHOD 2 if m_pop2 < m_pop1
+if (m_pop2 >= m_pop1) {
+  # Critical value of population 1 (upper tail, alpha = 0.05)
+  for (i in seq_along(sample_1)) {
+    c_value[1, i] <- qnorm(1 - alpha, m_pop1,
+                           sqrt(v_pop1 / sample_1[i]))
+  }
+  for (i in seq_along(sample_2)) {
+    power_pk[1, i] <- 1 - pnorm(c_value[1, i], m_pop2,
+                                sqrt(v_pop2 / sample_2[i]))
+  }
+} else {
+  # Critical value of population 1 (lower tail, alpha = 0.05)
+  for (i in seq_along(sample_1)) {
+    c_value[1, i] <- qnorm(alpha, m_pop1,
+                           sqrt(v_pop1 / sample_1[i]))
+  }
+  for (i in seq_along(sample_2)) {
+    power_pk[1, i] <- pnorm(c_value[1, i], m_pop2,
+                            sqrt(v_pop2 / sample_2[i]))
+  }
 }
 
+power <- power_pk * 100
 
-#5.Calculating power for each sample size
-
-power.PK<-matrix(0,1,length(sample.2))
-
-for (i in 1:length(sample.2)){
-  power.PK[1,i]<-1-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
-}
-
-power<-power.PK*100
+plot(sample_1, power, type = "l", col = "red", lwd = 2,
+     xlab = "Sample size", ylab = "Power(%)")
+abline(h = 80, lty = 2, lwd = 3)  # 80% power
 
 
-# -----------------------------------------------------------------------------------------------------------------
+# Finishing up ----------------------------------------------------------------
 
-#METHOD 2: If m.pop2<m.pop1
-#4b. Define critical value(for an alpha of 0.05) of population 1 by sample size
-alpha<-0.05
-c.value<-matrix(0,1,length(sample.1)) #
-
-for (i in 1:length(sample.1)){
-  c.value[1,i]<-qnorm(alpha, m.pop1,sqrt(v.pop1/sample.1[i]))  # Critical region/ area.
-
-}
-
-#5.Calculating power for each sample size
-
-power.PK<-matrix(0,1,length(sample.2))
-
-for (i in 1:length(sample.2)){
-  power.PK[1,i]<-pnorm(c.value[1,i],m.pop2,sqrt(v.pop2/sample.2[i]))
-}
-
-power<-power.PK*100
-
-#Graph of power by sample size
-plot(sample.1,power, type="l", col="red",lwd=2, xlab="Sample size", ylab="Power(%)")
-abline(h=8000,lty=2, lwd=3) # 80% power
+SimcypR::Uninitialise()

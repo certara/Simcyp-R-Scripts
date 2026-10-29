@@ -1,68 +1,203 @@
-# Load Packages
-library(SimcypR)
-library(RSQLite)
+# ==================================================================
+# Multi-species simulation — Animal (SimcypR V26)
+#
+# Goals
+#   1. Initialise the V26 Animal engine
+#   2. Load one workspace (Default_Animal.wksz — Dog by default)
+#   3. Simulate Dog, then LoadPopulation for Monkey / Mouse / Rat
+#   4. Save each modified species workspace (+ modification log)
+#   5. Overlay species profiles with PlotProfile_DB (LoadPopulation path)
+#   6. Reuse Dog.db; reload the three saved workspaces, re-simulate,
+#      and overlay again — same graph expected as the LoadPopulation path
+# ==================================================================
 
-# 01.Housekeeping ------
-# Setting up working directory
+# Clear Global Environment ----
+rm(list = ls())
+
+# 1. Load packages -------------------------------------------------
+library(SimcypR)   # Simcyp Simulator interface
+library(RSQLite)   # open each species .db for plotting
+library(ggplot2)   # used by PlotProfile_DB
+
+
+# 2. Work in the folder of this script -----------------------------
 path_user <- SimcypR::ScriptLocation()
+if (!nzchar(path_user)) path_user <- getwd()
 setwd(path_user)
 
-# Species <- c("Dog", "Monkey", "Mouse", "Other", "Rat")
-# Species <- c("Other")
-Species <- c("Dog", "Monkey", "Mouse", "Rat")
 
-# Create empty dataframe to store output
-PK_Profile_Combined <- data.frame()
-ST_PK_Profile_Combined <- data.frame()
+# 3. Initialise Simcyp engine (V26 Animal) -------------------------
+# V26: one Animal engine. Switch species with LoadPopulation()
+SimcypR::InitialiseAnimal(requestedVersion = 26, verbose = FALSE)
 
-# Initialize the Simulator to latest release (V26) and to the Animal Species.
-SimcypR::InitialiseAnimal(verbose = FALSE)
 
-for(i in 1:length(Species)) {
+# 4. Load the default Animal workspace (Dog) -----------------------
+# Workspace major version must match the engine (here: V26).
+workspace_file <- "Default_Animal.wksz"
 
-folder <- paste0("/GenericAnimal/", Species[i])
-
-# Extract All Simcyp workspace in the folder
-SimcypWksz <- list.files(path = paste0(path_user, folder), pattern = "wksz")
-
-for(j in 1:length(SimcypWksz)) {
-  SimcypR::SetWorkspace(paste0(path_user,folder,"/",SimcypWksz[j]))
-
-  # Create DB file name
-  DBfilename <- paste(fs::path_ext_remove(SimcypWksz[j]), ".db", sep="")
-  DBfilepath <- paste0(path_user, folder, "/", DBfilename)
-
-  #  Run a simulation
-  Simulate(database = DBfilepath)
-
-  #  Connect to the simulated DB file
-  conn <- RSQLite::dbConnect(SQLite(), DBfilepath)
-
-  # Extract Full conc time profiles
-  Csys_Full <- GetProfile_DB(ProfileID$Csys, Compound=CompoundID$Substrate, individual=1, conn)
-  Time_Full <- GetProfile_DB(ProfileID$nTimeSub, Compound=-1 , Inhibition = FALSE, conn, individual = 1) # Bug - no error with compound=-1
-
-  PK_Profile <- data.frame(WORKSPACE=SimcypWksz[j], SPECIES=Species[i], TIME = Time_Full, CSYS = Csys_Full)
-  PK_Profile_Combined <- rbind(PK_Profile_Combined, PK_Profile)
-
-  #  Extract Profiles at specified times ----
-  #  Specify Sampling time (ST)
-  Sampling_Time <- c(0,0.15,0.5,1,2,3,4,5,8,12,26,20,24)
-
-  ST_Csys <- GetProfileAtSpecifiedTimes_DB(Sampling_Time, ProfileID$Csys, individual = 1, Inhibition=FALSE, CompoundID$Substrate, conn)
-  Time <- ST_Csys$x
-  Csys <- ST_Csys$y
-
-  ST_PK_Profile <- data.frame(WORKSPACE=SimcypWksz[j], SPECIES=Species[i], TIME = Time, CSYS = Csys)
-  ST_PK_Profile_Combined <- rbind(ST_PK_Profile_Combined, ST_PK_Profile)
-
-  # Disconnect database file.
-  RSQLite::dbDisconnect(conn)
-
+ok <- SimcypR::SetWorkspace(workspace_file)
+if (!isTRUE(ok)) {
+  stop(
+    "SetWorkspace failed for ", workspace_file,
+    " — check the path and that the workspace major version matches V26."
+  )
 }
 
+# Colours — one per species
+species_cols <- c(
+  Dog    = "#0072B2",  # blue
+  Monkey = "#D55E00",  # vermillion
+  Mouse  = "#009E73",  # bluish green
+  Rat    = "#E69F00"   # orange
+)
+
+# Populations to load after the workspace Dog default.
+# Names come from AnimalPopulationFile (after InitialiseAnimal).
+# Inspect with: names(AnimalPopulationFile)
+species_pops <- list(
+  Monkey = AnimalPopulationFile$sim_Monkey,
+  Mouse  = AnimalPopulationFile$Sim_Mouse,
+  Rat    = AnimalPopulationFile$Sim_Rat
+)
+
+
+# 5. Helpers -------------------------------------------------------
+simulate_species_db <- function(db_file) {
+  SimcypR::Simulate(
+    database        = db_file,
+    verbose         = FALSE,
+    displayProgress = TRUE
+  )
+
+  conn <- RSQLite::dbConnect(RSQLite::SQLite(), db_file)
+  try(
+    DBI::dbExecute(conn, "PRAGMA wal_checkpoint(TRUNCATE);"),
+    silent = TRUE
+  )
+  conn
 }
 
+plot_csys <- function(conn, species_label, title, overlay = NULL) {
+  SimcypR::PlotProfile_DB(
+    Tag        = ProfileID$Csys,
+    Compound   = CompoundID$Substrate,
+    Inhibition = FALSE,
+    conn       = conn,
+    Col        = species_cols[[species_label]],
+    DBLabel    = species_label,
+    Overlay    = overlay,
+    Title      = title,
+    Xlabel     = "Time (h)",
+    Ylabel     = "Concentration (mg/L)"
+  )
+}
+
+
+# 6. Dog (workspace default) — first plot --------------------------
+# In-memory LoadPopulation path (no saved .wksz yet for Dog).
+conn_dog <- simulate_species_db("Dog.db")
+
+p_loadpop <- plot_csys(
+  conn          = conn_dog,
+  species_label = "Dog",
+  title         = "Multi Species Simulation"
+)
+
+RSQLite::dbDisconnect(conn_dog)
+
+
+# 7. Monkey, Mouse, Rat — LoadPopulation, SaveWorkspace, Overlay plots ---
+# Keep the same workspace loaded. LoadPopulation swaps the animal
+# population. SaveWorkspace writes a new .wksz (and a modification
+# log when logChanges = TRUE) into this script folder. Simulate then
+# writes a separate .db per species. PlotProfile_DB(Overlay = ...)
+# stacks each new profile.
+saved_workspaces <- character()
+
+for (species_label in names(species_pops)) {
+  pop_path <- species_pops[[species_label]]
+
+  loaded <- SimcypR::LoadPopulation(Population = 1, path = pop_path)
+  if (!isTRUE(loaded)) {
+    stop(
+      "LoadPopulation failed for ", species_label,
+      " — check AnimalPopulationFile after InitialiseAnimal()."
+    )
+  }
+
+  # Persist the modified in-memory workspace for this species.
+  # Path must differ from the currently loaded Default_Animal.wksz.
+  # logChanges = TRUE also writes a modification-log CSV beside it.
+  wksz_out <- file.path(path_user, paste0(species_label, ".wksz"))
+  saved <- SimcypR::SaveWorkspace(path = wksz_out, logChanges = TRUE)
+  if (!isTRUE(saved)) {
+    stop("SaveWorkspace failed for ", wksz_out)
+  }
+  saved_workspaces[[species_label]] <- wksz_out
+  message("Saved workspace (+ modification log): ", wksz_out)
+
+  conn_sp <- simulate_species_db(paste0(species_label, ".db"))
+
+  p_loadpop <- plot_csys(
+    conn          = conn_sp,
+    species_label = species_label,
+    title         = "Multi Species Simulation",
+    overlay       = p_loadpop
+  )
+
+  RSQLite::dbDisconnect(conn_sp)
+}
+
+print(p_loadpop)
+
+
+# 8. Reload saved workspaces and overlay again ---------------------
+# Reload the three saved species workspaces, simulate, and overlay.
+# The four-species graph should match p_loadpop.
+conn_dog_reuse <- RSQLite::dbConnect(RSQLite::SQLite(), "Dog.db")
+try(
+  DBI::dbExecute(conn_dog_reuse, "PRAGMA wal_checkpoint(TRUNCATE);"),
+  silent = TRUE
+)
+
+p_saved_wksz <- plot_csys(
+  conn          = conn_dog_reuse,
+  species_label = "Dog",
+  title         = "Multi Species Simulation- Method 2"
+)
+
+RSQLite::dbDisconnect(conn_dog_reuse)
+
+for (species_label in names(saved_workspaces)) {
+  wksz_path <- saved_workspaces[[species_label]]
+
+  ok_ws <- SimcypR::SetWorkspace(wksz_path)
+  if (!isTRUE(ok_ws)) {
+    stop(
+      "SetWorkspace failed for ", wksz_path,
+      " — check the path and workspace vs engine version."
+    )
+  }
+
+  conn_ws <- simulate_species_db(
+    paste0("from_wksz_", species_label, ".db")
+  )
+
+  p_saved_wksz <- plot_csys(
+    conn          = conn_ws,
+    species_label = species_label,
+    title         = "Multi Species Simulation- Method 2",
+    overlay       = p_saved_wksz
+  )
+
+  RSQLite::dbDisconnect(conn_ws)
+}
+
+## Compare the two overlays. ----
+# Print both plots — they should match (SaveWorkspace preserved the species swap).
+print(p_loadpop)
+print(p_saved_wksz)
+
+
+# 9. Uninitialise --------------------------------------------------
 SimcypR::Uninitialise()
-
-View(ST_PK_Profile_Combined)

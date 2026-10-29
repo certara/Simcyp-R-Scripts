@@ -1,6 +1,6 @@
 # Calculate the Area under the curve for user defined time intervals
 
-A graph of the predicted vs observed AUC and Cmax ratios data is generated in this example script.
+A table of the predicted vs observed AUC and Cmax ratios data is generated in this example script.
 
 ## This script shows
 
