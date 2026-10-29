@@ -1,5 +1,18 @@
 # Simcyp R Example Scripts
 
+
+> [!IMPORTANT]
+> **You are viewing the `main` branch, which is the maintenance branch.** It is updated continuously, so the example scripts here may be ahead of the Simcyp Simulator version you are using.
+>
+> To get the example scripts that match a specific Simcyp release, download that release from the [Releases page](https://github.com/certara/Simcyp-R-Scripts/releases) instead:
+>
+> | Release | Download |
+> |---------|----------|
+> | V25 | [Simcyp-R-Scripts v25](https://github.com/certara/Simcyp-R-Scripts/releases/tag/v25) |
+> | V24 | [Simcyp-R-Scripts v24](https://github.com/certara/Simcyp-R-Scripts/releases/tag/v24) |
+> | V23 | [Simcyp-R-Scripts v23](https://github.com/certara/Simcyp-R-Scripts/releases/tag/v23) |
+
+
 ## Description 
 A package to support R script interactions with the Simcyp simulator (V23-V25). Provides functions to initialise Simcyp, load and modify workspaces and interrogate results.  
 
