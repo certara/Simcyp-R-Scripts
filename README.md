@@ -93,6 +93,8 @@ See the Release Notes supplied with the packages for the full list of new and up
 
 Navigate to one of the example folders within the repository to view usage details.
 
+Example scripts for SimcypResults are contained within the package itself and can be viewed by running `browse_SimcypResults_help()`. If you would like to run those examples exactly as written with the example simulation files listed, please email simcyp.support@certara.com and they will share the example Simcyp workspaces and results files in your Members Area account.
+
 ## Support
 
 Please email simcyp.support@certara.com for any queries.
