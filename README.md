@@ -23,7 +23,7 @@ New for Version 26, **SimcypResults** is a companion R package for post-simulati
 
 * Windows 10 or Windows 11 (64-bit)
 * A licensed Simcyp Simulator, Version 25 or Version 26, installed on the same computer. The Simcyp Animal Simulator is needed only for animal workflows.
-* R 4.5 or later, 64-bit (SimcypResults needs R 4.1 or later). R 4.6.1 is recommended.
+* R 4.6 or later, 64-bit 
 * RStudio (recommended)
 * Internet access to CRAN, or a site-approved CRAN mirror, during installation
 
