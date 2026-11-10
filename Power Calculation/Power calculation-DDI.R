@@ -10,7 +10,6 @@
 rm(list = ls())
 library(SimcypR)
 library(RSQLite)
-library(tidyverse)
 
 # The licensed Simcyp Simulator must be installed for the requested major
 # version (V26 here). You do not need the Simulator GUI open.
@@ -95,18 +94,19 @@ pk_sub <- pk_sub[order(pk_sub$Individual), ]
 # Inhibition = 0: substrate PK without inhibitor
 # Inhibition = 1: substrate PK with inhibitor
 # Dose = -1: overall AUC across the simulation
-auc_sub_pop <- pk_sub %>%
-  dplyr::filter(Dose == -1, Inhibition == 0) %>%
-  dplyr::pull(AUC)
-
-auc_sub_ddi_pop <- pk_sub %>%
-  dplyr::filter(Dose == -1, Inhibition == 1) %>%
-  dplyr::pull(AUC)
+auc_sub_pop <- pk_sub$AUC[pk_sub$Dose == -1 & pk_sub$Inhibition == 0]
+auc_sub_ddi_pop <- pk_sub$AUC[pk_sub$Dose == -1 & pk_sub$Inhibition == 1]
 
 RSQLite::dbDisconnect(conn)
 
 
 # Split mixed populations (this workspace: 1000 subjects each) ----------------
+
+# This workspace has 3 populations of 1000 subjects; stop if the .db does not match.
+# The workspace settings read above are printed so you can compare them.
+message("Workspace: Pop = ", n_pop, "; population percentages = ",
+        paste(n_pop1, n_pop2, n_pop3, sep = " / "))
+stopifnot(length(auc_sub_pop) == 3000, length(auc_sub_ddi_pop) == 3000)
 
 auc_sub <- auc_sub_pop
 auc_sub_healthy <- auc_sub[1:1000]
@@ -158,30 +158,16 @@ sample_1 <- c(10, 20, 30, 40, 50)
 sample_2 <- sample_1
 
 alpha <- 0.05
-c_value <- matrix(0, 1, length(sample_1))
-power_pk <- matrix(0, 1, length(sample_2))
 
 # METHOD 1 if m_pop2 > m_pop1; METHOD 2 if m_pop2 < m_pop1
 if (m_pop2 >= m_pop1) {
   # Critical value of population 1 (upper tail, alpha = 0.05)
-  for (i in seq_along(sample_1)) {
-    c_value[1, i] <- qnorm(1 - alpha, m_pop1,
-                           sqrt(v_pop1 / sample_1[i]))
-  }
-  for (i in seq_along(sample_2)) {
-    power_pk[1, i] <- 1 - pnorm(c_value[1, i], m_pop2,
-                                sqrt(v_pop2 / sample_2[i]))
-  }
+  c_value <- qnorm(1 - alpha, m_pop1, sqrt(v_pop1 / sample_1))
+  power_pk <- 1 - pnorm(c_value, m_pop2, sqrt(v_pop2 / sample_2))
 } else {
   # Critical value of population 1 (lower tail, alpha = 0.05)
-  for (i in seq_along(sample_1)) {
-    c_value[1, i] <- qnorm(alpha, m_pop1,
-                           sqrt(v_pop1 / sample_1[i]))
-  }
-  for (i in seq_along(sample_2)) {
-    power_pk[1, i] <- pnorm(c_value[1, i], m_pop2,
-                            sqrt(v_pop2 / sample_2[i]))
-  }
+  c_value <- qnorm(alpha, m_pop1, sqrt(v_pop1 / sample_1))
+  power_pk <- pnorm(c_value, m_pop2, sqrt(v_pop2 / sample_2))
 }
 
 power <- power_pk * 100
