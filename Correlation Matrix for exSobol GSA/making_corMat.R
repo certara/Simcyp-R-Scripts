@@ -3,7 +3,11 @@ library("SimcypR")
 ## 1-Trial, 100-Subject simulations
 
 SimcypR::InitialiseHuman(verbose = FALSE)
-SetWorkspace("Alfentanil_1x100.wksz") # 1 Trial x 100 Subjects
+ok <- SetWorkspace("Alfentanil_1x100.wksz") # 1 Trial x 100 Subjects
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", "Alfentanil_1x100.wksz",
+       " - check the path and that the workspace major version matches the initialised engine.")
+}
 Simulate( database = "tempDB.db" ) # finishes in about a minute
 
 ## Analysis of correlation b/w SA parameters - idFu1, idBP,  idka,  idUserQgut, idEnteredVss

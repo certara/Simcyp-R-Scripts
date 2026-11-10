@@ -31,7 +31,11 @@ setwd(SimcypR::ScriptLocation())      # work in the folder of this script
 
 # 4. Load workspace and run simulation -----------------------------
 # Workspace major version must match the engine (here: V26).
-SimcypR::SetWorkspace("Default DDI.wksz")
+ok <- SimcypR::SetWorkspace("Default DDI.wksz")
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", "Default DDI.wksz",
+       " - check the path and that the workspace major version matches the initialised engine.")
+}
 
 SimcypR::Simulate(database = "NameYourFile.db")
 

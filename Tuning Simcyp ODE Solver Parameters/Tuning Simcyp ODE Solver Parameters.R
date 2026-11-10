@@ -27,7 +27,11 @@ SimcypR::InitialiseHuman(verbose = FALSE)
 path_user <- SimcypR::ScriptLocation()
 setwd(path_user)
 
-SetWorkspace("minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
+ok <- SetWorkspace("minPBPK_ADAM_CLiv.wksz") # 10 x 10 workspace
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", "minPBPK_ADAM_CLiv.wksz",
+       " - check the path and that the workspace major version matches the initialised engine.")
+}
 
 db_file  <- array( dim = Tot_iter )
 

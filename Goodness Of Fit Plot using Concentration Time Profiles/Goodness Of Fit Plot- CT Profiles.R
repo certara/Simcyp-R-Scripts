@@ -69,7 +69,11 @@ for (Std in 1:length(SimcypWksz)){
 
   # Set workspace
   Workspace <- SimcypWksz[Std]
-  SetWorkspace(file.path("Workspaces", Workspace))
+  ok <- SetWorkspace(file.path("Workspaces", Workspace))
+  if (!isTRUE(ok)) {
+    stop("SetWorkspace failed for ", file.path("Workspaces", Workspace),
+         " - check the path and that the workspace major version matches the initialised engine.")
+  }
   
   # Run simulation and save to database
   #fs::path_ext_remove() "removes the last extension and returns the rest of the path"

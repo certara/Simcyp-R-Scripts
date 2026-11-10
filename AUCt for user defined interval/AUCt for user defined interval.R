@@ -12,7 +12,11 @@ library(pracma)    # trapz() = area under curve
 setwd(SimcypR::ScriptLocation())      # work in the folder of this script
 
 InitialiseHuman(verbose = FALSE)      # if Simcyp is not found, add the SystemFiles path
-SetWorkspace("Mikus_2020_150mgCOBI_midazolam-DDI.wksz")
+ok <- SetWorkspace("Mikus_2020_150mgCOBI_midazolam-DDI.wksz")
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", "Mikus_2020_150mgCOBI_midazolam-DDI.wksz",
+       " - check the path and that the workspace major version matches the initialised engine.")
+}
 Simulate(database = "MikusMDZ.db")
 conn <- dbConnect(SQLite(), "MikusMDZ.db")
 
