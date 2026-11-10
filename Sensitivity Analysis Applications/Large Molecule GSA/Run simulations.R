@@ -34,7 +34,11 @@ setwd(path_user)
 ## Import the Simcyp workspace that fully defines the PBPK model for it's baseline parameterization. 
 ## In the below the workspace is in the same directory as the script.
 name.file = c("Large molecule GSA_V25")
-SimcypR::SetWorkspace(paste0(name.file, ".wksz"))
+ok <- SimcypR::SetWorkspace(paste0(name.file, ".wksz"))
+if (!isTRUE(ok)) {
+  stop("SetWorkspace failed for ", paste0(name.file, ".wksz"),
+       " - check the path and that the workspace major version matches the initialised engine.")
+}
 
 ## Create a database file name.
 DBfilename = paste0(name.file, ".db")
