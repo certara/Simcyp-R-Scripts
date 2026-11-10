@@ -102,6 +102,9 @@ RSQLite::dbDisconnect(conn)
 
 # Split mixed populations (this workspace: 1000 subjects each) ----------------
 
+# This workspace has 3 populations of 1000 subjects; stop if the .db does not match
+stopifnot(length(auc_sub_pop) == 3000, length(auc_sub_ddi_pop) == 3000)
+
 auc_sub <- auc_sub_pop
 auc_sub_healthy <- auc_sub[1:1000]
 auc_sub_renal_36 <- auc_sub[1001:2000]

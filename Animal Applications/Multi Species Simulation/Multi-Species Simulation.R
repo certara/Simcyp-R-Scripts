@@ -60,6 +60,13 @@ species_pops <- list(
   Rat    = AnimalPopulationFile$Sim_Rat
 )
 
+# A wrong name above gives NULL, which would fail later inside LoadPopulation
+if (any(vapply(species_pops, is.null, logical(1)))) {
+  stop("Population not found for: ",
+       paste(names(species_pops)[vapply(species_pops, is.null, logical(1))], collapse = ", "),
+       ". Check names(AnimalPopulationFile).")
+}
+
 
 # 5. Helpers -------------------------------------------------------
 simulate_species_db <- function(db_file) {

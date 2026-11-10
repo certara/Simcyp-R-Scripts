@@ -70,6 +70,10 @@ for (i in 1:nInd) {
   conc_base <- conc_base[keep]
   conc_inh  <- conc_inh[keep]
   
+  # trapz() and max() give NA / -Inf with fewer than 2 points, so stop with a clear message
+  if (sum(keep) < 2) stop("Fewer than 2 sampled time points between From and To for individual ", i,
+                          " - widen the interval or check the output times.")
+  
   # AUC by the trapezoidal rule, then the ratio (with / without inhibitor)
   AUC_base <- trapz(time, conc_base)
   AUC_inh  <- trapz(time, conc_inh)
