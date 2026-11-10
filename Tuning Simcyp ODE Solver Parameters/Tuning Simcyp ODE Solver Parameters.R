@@ -59,11 +59,10 @@ for( iter in 1 : Tot_iter ){
    res.df$sd_time[  iter] <-   sd( sim_duration )
 
    # NO. OF SUBJECTS WITH A NEGATIVE CONC
-   negC <- vector()
-   for(k in 1:100){
-      Csys <- GetProfile_DB(ProfileID$Csys, Compound = CompoundID$Substrate, individual = k, conn, Inhibition = FALSE)
-      negC[k] <- as.numeric( 0 < sum( ( Csys < 0) ) ) # there is a neg conc or not
-   }
+   Csys_all <- GetProfiles_DB(ProfileID$Csys, individual = -1L,
+                              Compound = CompoundID$Substrate,
+                              Inhibition = FALSE, conn = conn)
+   negC <- vapply(Csys_all[[2]], function(Csys) any(Csys < 0), logical(1))
 
    res.df$subjects_negC[iter] <- sum( negC )
 
