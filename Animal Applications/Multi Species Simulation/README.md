@@ -39,7 +39,7 @@ This example uses the **SimcypR** package with the **V26 Animal** engine. It sta
 - After initialise, inspect available populations with `names(AnimalPopulationFile)`.
 - This example uses:
   - Dog — workspace default (no `LoadPopulation`)
-  - Monkey — `AnimalPopulationFile$sim_Monkey`
+  - Monkey — `AnimalPopulationFile$Sim_Monkey`
   - Mouse — `AnimalPopulationFile$Sim_Mouse`
   - Rat — `AnimalPopulationFile$Sim_Rat`
 - `SaveWorkspace` path must differ from the currently loaded workspace path.

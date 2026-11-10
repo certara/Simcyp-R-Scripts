@@ -55,7 +55,7 @@ species_cols <- c(
 # Names come from AnimalPopulationFile (after InitialiseAnimal).
 # Inspect with: names(AnimalPopulationFile)
 species_pops <- list(
-  Monkey = AnimalPopulationFile$sim_Monkey,
+  Monkey = AnimalPopulationFile$Sim_Monkey,
   Mouse  = AnimalPopulationFile$Sim_Mouse,
   Rat    = AnimalPopulationFile$Sim_Rat
 )
