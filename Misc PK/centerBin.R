@@ -31,6 +31,9 @@
 
 centerBin <- function(x, breaks){
 
+      # Nothing to bin (also avoids max() of an empty set below)
+      if(all(is.na(x))) return(x)
+
       breaks <- sort(unique(breaks))
 
       CenterBins <- data.frame(LfBin = c(NA, breaks),

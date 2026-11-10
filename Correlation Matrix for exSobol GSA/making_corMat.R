@@ -31,7 +31,12 @@ corMat <- cor( DF ) # Correlation Matrix - this is what we want, but see below
 
 library(Matrix)
 
-EV <- eigen( corMat )$values # PD means all eigenvalues are positive
-if ( ! all( (EV >= 0) ) ) {
-  corMatRev <- nearPD( corMat, corr = TRUE)$mat
+EV <- eigen( corMat )$values # PD means all eigenvalues are strictly positive
+if ( min(EV) <= 1e-8 ) {   # small tolerance guards against numerical zeros
+  corMatFinal <- as.matrix( nearPD( corMat, corr = TRUE)$mat )
+} else {
+  corMatFinal <- corMat
 }
+
+## corMatFinal is the correlation matrix to use; save it for the GSA
+write.csv( corMatFinal, "Alfentanil_corMat.csv" )

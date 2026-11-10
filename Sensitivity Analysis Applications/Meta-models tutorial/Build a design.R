@@ -1,7 +1,7 @@
 library("spacefillr")
 
 #Script to generate a design on the unit hypercube and re-scale to a model space design.
-#Examples of linear and lof scaling are shown
+#Examples of linear and log scaling are shown
 
 n.sobol=2^8 #256 point design
 n.param = 5 #5 parameters 
@@ -34,6 +34,13 @@ for(i in 1:5)
   }
   
 }
+
+# Write the design and the scaling used so the other scripts can read them.
+# Note: the Scale column above is an example mix. Whatever you write here must match the
+# bounds and scaling used in Run simulations.R and Meta model fitting.R.
+write.csv(data.frame(Point = seq_len(n.sobol), setNames(as.data.frame(Design_Model), paste0("X", seq_len(n.param)))),
+          'Theo Design.csv', row.names = FALSE)
+write.csv(Rescaling, 'Theo Scales.csv', row.names = FALSE)
 
 #Design model is the model scale design used for model runs.
 #Each row is a model scale design point corresponding to the parameters which must be changed for that run of the model.

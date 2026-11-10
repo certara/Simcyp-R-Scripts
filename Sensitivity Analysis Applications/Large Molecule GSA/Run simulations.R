@@ -22,11 +22,13 @@ library("reshape")
 library("spacefillr")
 library("sensitivity")
 
-## Initialise the version V25 engine for a human workspace
+## Initialise the V25 engine for a human workspace. This is a V25 workspace run with the V26 SimcypR package,
+## so Initialise() with requestedVersion = 25 is used rather than InitialiseHuman().
+## To use a V26 workspace instead, see the README.
 SimcypR::Initialise(species = SpeciesID$Human, requestedVersion = 25, verbose = FALSE) 
 
 ## Set script to source file location
-path_user = Simcyp::ScriptLocation()
+path_user = SimcypR::ScriptLocation()
 setwd(path_user)
 
 ## Import the Simcyp workspace that fully defines the PBPK model for it's baseline parameterization. 
@@ -99,7 +101,7 @@ n.param = 5
 
 ## In the below, the command model = NULL activates decoupling.
 ## The argument factors specifies the number of parameters, and r is the number of trajectories.
-## In the design arguments a discrete grid of 9 values is assumed for each parameter (levels argument in Simcyp). 
+## In the design arguments a discrete grid of 8 values is assumed for each parameter (levels argument in sensitivity::morris). 
 ## The grid jump follows the levels/2 proposal of the Morris (1991) paper. Use ?morris for further details and options.
 MorrisObject <- sensitivity::morris(model = NULL, factors = n.param , r = 20, design = list(type = "oat", levels = 8, grid.jump = 4))
 
@@ -134,14 +136,14 @@ X2 <- data.frame(matrix(runif(n.param * m), nrow = m))
 
 Sobol_object = sensitivity::sobolSalt(model = NULL, X1, X2, scheme="A", nboot = 10)
 
-# This contains the 6000 design points for Sobol SA
+# This contains the 7000 design points (m * (n.param + 2) = 1000 * 7) for Sobol SA
 SobolDesignUnit = Sobol_object$X
 SobolDesignModel =  SobolDesignUnit 
 
 
 ## Here we rescale the design on the unit hypercube to the Simcyp model parameter space.
 ## In this case we use the probability distributions for rescaling.
-## SobolDesignModel below is a 6000 by 5 matrix of design points. Each line is a set of parameters at which the PBPK model must be run.
+## SobolDesignModel below is a 7000 by 5 matrix of design points. Each line is a set of parameters at which the PBPK model must be run.
 for(i in 1:n.param){
   if(para.input$distribution[i] == "normal")
   {
@@ -162,7 +164,7 @@ colnames(SobolDesignModel) = para.input$names
 ## This function takes two arguments, the number of points and the number of parameters.
 ## The resulting design is on the unit hypercube
 n.sobol=2^7
-design_unit = spacefillr::generate_sobol_owen_set(n.sobol, n.param)  # AO: do i apply the Kidney:Liver Ratio here or below in the next step (for loop)?!?
+design_unit = spacefillr::generate_sobol_owen_set(n.sobol, n.param)
 
 
 ## Here we rescale the design on the unit hypercube to the Simcyp model parameter space.

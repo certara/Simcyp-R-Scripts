@@ -21,6 +21,7 @@ library("reshape")
 library("spacefillr")
 library("SimcypR")
 library("flux")
+library("ggrepel")
 
 
 
@@ -58,7 +59,7 @@ profiles_melt$time = rep(Time, points)
 
 Drug_profiles_Vascular = ggplot(data=profiles_melt, aes(x=time, y=value, group=variable)) +
   geom_line(data=profiles_melt, aes(x=time, y=value, group=variable), colour='darkblue', alpha=0.4) +
-  ylab("Plasma concentration") +
+  ylab("Vascular concentration") +
   xlab("Time (hours)")
 
 
@@ -68,7 +69,7 @@ profiles_melt$time = rep(Time, points)
 
 Drug_profiles_Endothelial = ggplot(data=profiles_melt, aes(x=time, y=value, group=variable)) +
   geom_line(data=profiles_melt, aes(x=time, y=value, group=variable), colour='darkblue', alpha=0.4) +
-  ylab("Plasma concentration") +
+  ylab("Endothelial concentration") +
   xlab("Time (hours)")
 
 
@@ -78,7 +79,7 @@ profiles_melt$time = rep(Time, points)
 
 Drug_profiles_Interstitial = ggplot(data=profiles_melt, aes(x=time, y=value, group=variable)) +
   geom_line(data=profiles_melt, aes(x=time, y=value, group=variable), colour='darkblue', alpha=0.4) +
-  ylab("Plasma concentration") +
+  ylab("Interstitial concentration") +
   xlab("Time (hours)")
 
 
@@ -88,7 +89,7 @@ profiles_melt$time = rep(Time, points)
 
 Drug_profiles_Intracellular = ggplot(data=profiles_melt, aes(x=time, y=value, group=variable)) +
   geom_line(data=profiles_melt, aes(x=time, y=value, group=variable), colour='darkblue', alpha=0.4) +
-  ylab("Plasma concentration") +
+  ylab("Intracellular concentration") +
   xlab("Time (hours)")
 
 

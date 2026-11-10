@@ -1,6 +1,6 @@
 # Run a bespoke sensitivity analysis through SimcypR
 
-This example uses the **SimcypR** package with the **V25 Human** engine. 
+This example uses the **SimcypR** package with the **V25 Human** engine (the workspace is a V25 workspace). 
 The example is split over two files to demonstrate a bespoke sensitivity analysis.
 
 The first file `Run Simulations.R` runs all the necessary simulations using **SimcypR** to interface with the **Simcyp Simulator** and 
@@ -25,12 +25,12 @@ As all the simulations have already been run and stored in the folders of this d
 |---|---|
 | `Run simulations.R` | Sampling R script |
 | `Run GSA.R` | Analysis R script |
-| `Large molecule GSA_V25.wksz` | Human large molecule workspace |
+| `Large molecule GSA_V25.wksz` | Human large molecule workspace (V25) |
 
 ## How to run this example
 
-1. Ensure the Simcyp Simulator **V26** and matching **SimcypR** package are installed.
-2. Keep `Large molecule GSA.wksz` in the same folder as the script.
+1. Ensure the Simcyp Simulator **V26** and matching **SimcypR** package are installed. The V25 Simulator is also needed, because the workspace is a V25 workspace.
+2. Keep `Large molecule GSA_V25.wksz` in the same folder as the script.
 3  Keep the three sub folders and their contents in the same folder as the script.
 3. Open `Run simulations.R` and run the script.
 3. Open `Run GSA.R` and run the script.

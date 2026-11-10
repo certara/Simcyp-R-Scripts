@@ -142,6 +142,10 @@ for(i in 2:points){
   Plasma <- SimcypR::GetProfile_DB(ProfileID$Csys, Compound=CompoundID$Substrate, individual=1, conn, Inhibition = FALSE) 
   
 
+  ## Close the connection and delete the temporary database before the next design point
+  RSQLite::dbDisconnect(conn)
+  unlink(DBfilepath)
+
   #Keep track of the number of simulations run
   Store_Plasma <- cbind(Store_Plasma, Plasma)
     print(i)
@@ -152,6 +156,9 @@ for(i in 2:points){
 ## Dataframes could be output and worked with directly but the files are too large for a practical example.
 ## The code below processes model output and extracts AUC, Cmax and Tmax for each summary measure.
 
+# Trapezoidal area under the curve (replaces flux::auc, so no extra package is needed)
+trapz <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+
 #Initialize empty vectors for results
 AUC = c()
 Cmax = c()
@@ -160,7 +167,7 @@ Tmax = c()
 for(i in 1:points)
 {
   run = Store_Plasma[,i]
-  AUC = c(AUC, flux::auc(Time, run))
+  AUC = c(AUC, trapz(Time, run))
   Cmax = c(Cmax, max(run))
   Tmax = c(Tmax, Time[which.max(run)])
 }
@@ -170,7 +177,7 @@ for(i in 1:points)
 ## We write as .csv, which can be read in for the meta model-based GSA
 Results = data.frame(AUC, Cmax, Tmax)
 
-write.csv(Results, 'Results.csv')
+write.csv(Results, 'Theo Results.csv', row.names = FALSE)
 
 
 #####################################################################################################################################

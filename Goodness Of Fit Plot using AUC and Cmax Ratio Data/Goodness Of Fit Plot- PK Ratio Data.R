@@ -62,8 +62,8 @@ for (Wks in 1:length(SimcypWksz)){
   SetWorkspace(file.path("Workspaces", Workspace))
 
   # Run simulation and save to database
-  #fs::path_ext_remove() "removes the last extension and returns the rest of the path"
-  DBfilename <- paste(fs::path_ext_remove(paste(Workspace)), ".db", sep="")
+  #tools::file_path_sans_ext() "removes the last extension and returns the rest of the path"
+  DBfilename <- paste(tools::file_path_sans_ext(Workspace), ".db", sep="")
   DBfilepath <- file.path(path_user, DBfilename) # File path to save the database results to
   Simulate(database = DBfilepath)
   conn <- RSQLite::dbConnect(SQLite(), DBfilepath)
@@ -93,6 +93,11 @@ Predicted.AUCRatio <- data.frame(PKData[["AUCt_ratio"]])
 # Note this is ordered and matched to the SimcypWksz above!
 Observed.Cmaxratio <- c(1.4,2.90,NA,NA)
 Observed.AUCratio <- c(13.71,6.14,1.25,1.93)
+
+# Observed values are matched to the predicted rows by position, so check the counts agree
+stopifnot(length(Observed.Cmaxratio) == nrow(Predicted.CmaxRatio),
+          length(Observed.AUCratio)  == nrow(Predicted.AUCRatio),
+          nrow(Predicted.AUCRatio)   == length(SimcypWksz))
 
 # Prep data for GOF plot
 # Combine Observed and Predicted data and add labels of Victim Compound name.

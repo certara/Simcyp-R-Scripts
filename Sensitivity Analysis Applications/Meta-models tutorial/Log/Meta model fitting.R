@@ -8,7 +8,7 @@
 
 Rescaling = read.csv('Theo Scales.csv')
 Design = read.csv('Theo Design.csv')
-Results = read.csv('Theo results.csv')
+Results = read.csv('Theo Results.csv')
 
 
 Design_Unit = matrix(rep(NA,5*256), ncol=5)
@@ -32,6 +32,9 @@ for(i in 1:5)
 }
 
 library("sensitivity")
+# Predictivity (Q2) of the emulator: 1 - residual SS / total SS. Used for the plot subtitles.
+q2 <- function(observed, predicted) 1 - sum((observed - predicted)^2) / sum((observed - mean(observed))^2)
+
 
 #This code block here generates the design points for the GSA which are on the [0,1] interval.
 #We apply two transformations
@@ -387,7 +390,7 @@ plotres = ggplot(data=plot_AUC_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'AUC, n=64, Q2 = 0.992')
+  labs(subtitle = sprintf('AUC, n=64, Q2 = %.3f', q2(plot_AUC_results$model.output, plot_AUC_results$crossval.m)))
 
 ggsave(plotres, filename= 'AUC log_64.png')
 
@@ -422,7 +425,7 @@ plotres = ggplot(data=plot_AUC_oos_constant, aes(x=model.pred, y=out.of.sample.m
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'AUC, n=64, Q2 = 0.993')
+  labs(subtitle = sprintf('AUC, n=64, Q2 = %.3f', q2(plot_AUC_oos_constant$model.pred, plot_AUC_oos_constant$out.of.sample.m)))
 
 #ggsave(plotres, filename='AUC OOS predictions log_64.png')
 
@@ -480,7 +483,7 @@ plotres = ggplot(data=plot_AUC_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'AUC, n=128, Q2 = 0.996')
+  labs(subtitle = sprintf('AUC, n=128, Q2 = %.3f', q2(plot_AUC_results$model.output, plot_AUC_results$crossval.m)))
 
 #ggsave(plotres, filename= 'AUC log_128.png')
 
@@ -515,7 +518,7 @@ plotres = ggplot(data=plot_AUC_oos_constant, aes(x=model.pred, y=out.of.sample.m
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'AUC, n=128, Q2 = 0.995')
+  labs(subtitle = sprintf('AUC, n=128, Q2 = %.3f', q2(plot_AUC_oos_constant$model.pred, plot_AUC_oos_constant$out.of.sample.m)))
 
 #ggsave(plotres, filename='AUC OOS predictions log_128.png')
 
@@ -548,7 +551,7 @@ model.input <- Design_Unit[1:256,]
 
 
 nparam=5
-#initial.values <- runif(5, 0, 1)
+initial.values <- runif(5, 0, 1)
 
 g <- optim(log(initial.values),objectivefunc_constant,method="SANN" ,control=list(trace=0,maxit=1500,fnscale= 1))
 g
@@ -591,7 +594,7 @@ plotres = ggplot(data=plot_AUC_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'AUC, n=128, Q2 = 0.997')
+  labs(subtitle = sprintf('AUC, n=256, Q2 = %.3f', q2(plot_AUC_results$model.output, plot_AUC_results$crossval.m)))
 
 ggsave(plotres, filename= 'AUC log_256.png')
 
@@ -673,7 +676,7 @@ plotres = ggplot(data=plot_Cmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Cmax, n=64, Q2 = 0.996')
+  labs(subtitle = sprintf('Cmax, n=64, Q2 = %.3f', q2(plot_Cmax_results$model.output, plot_Cmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Cmax log_64.png')
 
@@ -705,7 +708,7 @@ plotres = ggplot(data=plot_Cmax_oos_constant, aes(x=model.pred, y=out.of.sample.
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Cmax, n=64, Q2 = 0.992')
+  labs(subtitle = sprintf('Cmax, n=64, Q2 = %.3f', q2(plot_Cmax_oos_constant$model.pred, plot_Cmax_oos_constant$out.of.sample.m)))
 
 ggsave(plotres, filename='Cmax OOS predictions log_64.png')
 
@@ -763,7 +766,7 @@ plotres = ggplot(data=plot_Cmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Cmax, n=128, Q2 = 0.998')
+  labs(subtitle = sprintf('Cmax, n=128, Q2 = %.3f', q2(plot_Cmax_results$model.output, plot_Cmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Cmax log_128.png')
 
@@ -798,7 +801,7 @@ plotres = ggplot(data=plot_Cmax_oos_constant, aes(x=model.pred, y=out.of.sample.
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Cmax, n=128, Q2 = 0.993')
+  labs(subtitle = sprintf('Cmax, n=128, Q2 = %.3f', q2(plot_Cmax_oos_constant$model.pred, plot_Cmax_oos_constant$out.of.sample.m)))
 
 ggsave(plotres, filename='Cmax OOS predictions log_128.png')
 
@@ -875,7 +878,7 @@ plotres = ggplot(data=plot_Cmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Cmax, n=128, Q2 = 0.991')
+  labs(subtitle = sprintf('Cmax, n=256, Q2 = %.3f', q2(plot_Cmax_results$model.output, plot_Cmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Cmax log_256.png')
 
@@ -951,7 +954,7 @@ plotres = ggplot(data=plot_Tmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Tmax, n=64, Q2 = 0.994')
+  labs(subtitle = sprintf('Tmax, n=64, Q2 = %.3f', q2(plot_Tmax_results$model.output, plot_Tmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Tmax log_64.png')
 
@@ -984,7 +987,7 @@ plotres = ggplot(data=plot_Tmax_oos_constant, aes(x=model.pred, y=out.of.sample.
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Tmax, n=64, Q2 = 0.998')
+  labs(subtitle = sprintf('Tmax, n=64, Q2 = %.3f', q2(plot_Tmax_oos_constant$model.pred, plot_Tmax_oos_constant$out.of.sample.m)))
 
 ggsave(plotres, filename='Tmax OOS predictions log_64.png')
 
@@ -1042,7 +1045,7 @@ plotres = ggplot(data=plot_Tmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Tmax, n=128, Q2 = 0.997')
+  labs(subtitle = sprintf('Tmax, n=128, Q2 = %.3f', q2(plot_Tmax_results$model.output, plot_Tmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Tmax log_128.png')
 
@@ -1078,7 +1081,7 @@ plotres = ggplot(data=plot_Tmax_oos_constant, aes(x=model.pred, y=out.of.sample.
   geom_point(aes(x=model.pred, y=out.of.sample.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Tmax, n=128, Q2 = 0.998')
+  labs(subtitle = sprintf('Tmax, n=128, Q2 = %.3f', q2(plot_Tmax_oos_constant$model.pred, plot_Tmax_oos_constant$out.of.sample.m)))
 
 ggsave(plotres, filename='Tmax OOS predictions log_128.png')
 
@@ -1157,7 +1160,7 @@ plotres = ggplot(data=plot_Tmax_results, aes(x=model.output, y=crossval.m)) +
   geom_point(aes(x=model.output, y=crossval.m)) +
   xlab('Model output') +
   ylab('Emulator prediction') +
-  labs(subtitle = 'Tmax, n=128, Q2 = 0.987')
+  labs(subtitle = sprintf('Tmax, n=256, Q2 = %.3f', q2(plot_Tmax_results$model.output, plot_Tmax_results$crossval.m)))
 
 ggsave(plotres, filename= 'Tmax log_256.png')
 

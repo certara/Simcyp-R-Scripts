@@ -128,7 +128,7 @@ ggplot2::ggplot(data = sim_csys) +
     ggplot2::aes(x = Time_h, y = CSysInh_mgL, group = IND, colour = "CSysInh"),
     alpha = 0.35
   ) +
-  ggplot2::scale_x_continuous("Time (h)", limits = c(0, 24)) +
+  ggplot2::scale_x_continuous("Time (h)") +
   ggplot2::scale_y_continuous("Csys (mg/L)") +
   ggplot2::ggtitle("Individual systemic concentration–time profile") +
   ggplot2::labs(colour = "Profile") +

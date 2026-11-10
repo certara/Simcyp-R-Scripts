@@ -5,7 +5,7 @@ library("SimcypR")
 
 #######  PREPARATIONS - combinations of solver-parameters to examine
 
-Tot_iter <- 9 # {RK5, Livermore, CVODES} x {rtol = 0,1, 0.01, 0.001}
+Tot_iter <- 9 # {RK5, Livermore, CVODES} x {rtol = 1e-8, 1e-9, 1e-10}
 
 solvName <- c("RK5", "Livermore", "CVODES")
 solv     <- c(1,1,1,2,2,2,3,3,3) # 1:RK5, 2:Livermore, 3:CVODES
